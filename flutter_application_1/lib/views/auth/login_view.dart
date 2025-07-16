@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import '../../services/translation_service.dart';
 import '../../controllers/auth_controller.dart';
+import '../../services/profile_service.dart';
 
 class TransportLoginPage extends StatefulWidget {
   const TransportLoginPage({Key? key}) : super(key: key);
@@ -84,6 +85,22 @@ class _TransportLoginPageState extends State<TransportLoginPage>
         _usernameController.text,
         _passwordController.text,
       );
+      // Vérifier le vrai type d'utilisateur
+      final profileService = ProfileService();
+      final profile = await profileService.getProfile();
+      final realUserType = profile['userType'];
+      if (realUserType != _userType) {
+        setState(() {
+          _errorMessage = _getText('user_type_mismatch') + ' (' + (realUserType ?? '-') + ')';
+        });
+        return;
+      }
+      // Redirection selon le type
+      if (_userType == 'chargeur') {
+        Get.offAllNamed('/chargeur-home');
+      } else if (_userType == 'transporteur') {
+        Get.offAllNamed('/transporteur-home');
+      }
     } catch (e) {
       setState(() {
         _errorMessage = _getText('login_error');

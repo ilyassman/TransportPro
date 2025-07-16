@@ -2,8 +2,6 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/auth_service.dart';
 import '../models/auth_model.dart';
-import '../views/user_view.dart';
-import '../services/utils/user_binding.dart';
 import '../models/user_model.dart';
 
 class AuthController extends GetxController {
@@ -38,10 +36,7 @@ class AuthController extends GetxController {
       await prefs.setString('refresh_token', authResponse.refreshToken);
       
       // Rediriger vers la page users
-      Get.offAll(
-        () => UserView(),
-         binding: UserBinding(authResponse.accessToken),
-      );
+      // Ne rien faire ici, la navigation est gérée dans login_view.dart
       
     } catch (e) {
       rethrow;
@@ -117,10 +112,7 @@ class AuthController extends GetxController {
       await prefs.setString('refresh_token', response['refresh_token']);
       
       // Rediriger vers la page users
-      Get.offAll(
-        () => UserView(),
-         binding: UserBinding(response['access_token']),
-      );
+      // Ne rien faire ici, la navigation est gérée dans login_view.dart
       
     } catch (e) {
       rethrow;

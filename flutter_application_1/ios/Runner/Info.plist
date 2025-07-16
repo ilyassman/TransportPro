@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>Cette application nécessite l'accès à votre localisation pour vous permettre de choisir des adresses sur la carte et localiser votre position actuelle.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>Cette application nécessite l'accès à votre localisation pour vous permettre de choisir des adresses sur la carte et localiser votre position actuelle.</string>
 </dict>
 </plist>
