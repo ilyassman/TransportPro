@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/profile_service.dart';
 import 'package:flutter_application_1/services/translation_service.dart';
+import 'package:flutter_application_1/services/camion_service.dart'; // Added import for CamionService
+import 'package:http/http.dart' as http; // Added import for http
+import 'dart:convert'; // Added import for json
 import 'map_picker_view.dart';
 import '../../models/camion_model.dart';
 import 'camion_search_results_page.dart';
@@ -23,6 +26,36 @@ class _ReservationViewState extends State<ReservationView> {
 
   String _getText(String key) {
     return TranslationService.getText(key);
+  }
+
+  // Méthode pour obtenir la valeur française pour la BDD
+  String _getTypeMarchandiseForDB() {
+    switch (_typeMarchandise.toLowerCase()) {
+      case 'normal':
+      case 'عادي':
+        return 'Normal';
+      case 'réfrigéré':
+      case 'refrigerated':
+      case 'مبرد':
+        return 'Réfrigéré';
+      default:
+        return _typeMarchandise;
+    }
+  }
+
+  // Méthode pour obtenir la valeur affichée (traduite)
+  String _getTypeMarchandiseDisplay() {
+    switch (_typeMarchandise.toLowerCase()) {
+      case 'normal':
+      case 'عادي':
+        return _getText('normal');
+      case 'réfrigéré':
+      case 'refrigerated':
+      case 'مبرد':
+        return _getText('refrigerated');
+      default:
+        return _typeMarchandise;
+    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
@@ -107,9 +140,9 @@ class _ReservationViewState extends State<ReservationView> {
                         const SizedBox(height: 18),
                         Row(
                           children: [
-                            _typeButton(_getText('normal')),
+                            _typeButton('Normal', _getText('normal')),
                             const SizedBox(width: 12),
-                            _typeButton(_getText('refrigerated')),
+                            _typeButton('Réfrigéré', _getText('refrigerated')),
                           ],
                         ),
                         const SizedBox(height: 18),
@@ -133,22 +166,41 @@ class _ReservationViewState extends State<ReservationView> {
                               ),
                               elevation: 2,
                             ),
-                            onPressed: () {
+                            onPressed: () async {
                               if (_formKey.currentState!.validate()) {
                                 final draft = ReservationDraft(
                                   lieuDepart: _departController.text,
                                   lieuArrivee: _arriveeController.text,
                                   dateReservation: DateTime.now(), // à adapter si tu veux la vraie date
-                                  typeMarchandise: _typeMarchandise,
+                                  typeMarchandise: _getTypeMarchandiseForDB(), // Utiliser la version française pour la BDD
                                   poids: double.tryParse(_poidsController.text) ?? 0,
                                   volume: double.tryParse(_volumeController.text) ?? 0,
                                 );
-                                // Simule une liste de camions (à remplacer par l'appel API plus tard)
-                                final camions = [
-                                  Camion(id: 1, immatriculation: '123-ABC', type: 'Camion', capacite: 1500, marque: 'Renault', modele: 'Express', disponible: true, latitude: 0, longitude: 0),
-                                  Camion(id: 2, immatriculation: '456-DEF', type: 'Camionnette', capacite: 800, marque: 'Peugeot', modele: 'Pro', disponible: true, latitude: 0, longitude: 0),
-                                  Camion(id: 3, immatriculation: '789-GHI', type: 'Camion', capacite: 2000, marque: 'Fiat', modele: 'Rapide', disponible: true, latitude: 0, longitude: 0),
-                                ];
+                                // Extraire la latitude/longitude du lieu de départ via Nominatim
+                                final address = _departController.text;
+                                double? latitude;
+                                double? longitude;
+                                try {
+                                  final url = Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=' + Uri.encodeComponent(address));
+                                  final response = await http.get(url, headers: {'User-Agent': 'FlutterApp'});
+                                  if (response.statusCode == 200) {
+                                    final List data = json.decode(response.body);
+                                    if (data.isNotEmpty) {
+                                      latitude = double.tryParse(data[0]['lat'] ?? '');
+                                      longitude = double.tryParse(data[0]['lon'] ?? '');
+                                    }
+                                  }
+                                } catch (e) {
+                                  // ignore
+                                }
+                                List<Camion> camions = [];
+                                if (latitude != null && longitude != null) {
+                                  camions = await CamionService().getCamionsProches(
+                                    latitude: latitude,
+                                    longitude: longitude,
+                                    rayonKm: 10,
+                                  );
+                                }
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
@@ -270,11 +322,11 @@ class _ReservationViewState extends State<ReservationView> {
     );
   }
 
-  Widget _typeButton(String type) {
-    final bool selected = _typeMarchandise == type;
+  Widget _typeButton(String typeValue, String displayText) {
+    final bool selected = _typeMarchandise == typeValue;
     return Expanded(
       child: GestureDetector(
-        onTap: () => setState(() => _typeMarchandise = type),
+        onTap: () => setState(() => _typeMarchandise = typeValue),
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 14),
@@ -297,7 +349,7 @@ class _ReservationViewState extends State<ReservationView> {
           ),
           child: Center(
             child: Text(
-              type,
+              displayText,
               style: TextStyle(
                 color: selected ? Colors.white : const Color(0xFF1E3A8A),
                 fontWeight: FontWeight.bold,

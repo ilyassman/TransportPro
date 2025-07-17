@@ -24,7 +24,9 @@ public class Reservation {
     private String typeMarchandise; // normale, frigorifique, etc.
     private double volume;
     private double poids;
+    @Column(name = "lieuDepart", columnDefinition = "VARCHAR(255) CHARACTER SET utf8mb4")
     private String lieuDepart;
+    @Column(name = "lieuArrive", columnDefinition = "VARCHAR(255) CHARACTER SET utf8mb4")
     private String lieuArrivee;
     private LocalDateTime dateReservation;
     private LocalDateTime dateLivraison;

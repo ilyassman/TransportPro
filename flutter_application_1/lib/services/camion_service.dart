@@ -32,4 +32,18 @@ class CamionService {
       rethrow;
     }
   }
+
+  Future<Camion?> getCamionById(int id) async {
+    try {
+      final dio = await _getDioWithToken();
+      final response = await dio.get('/api/camions/$id');
+      if (response.statusCode == 200) {
+        return Camion.fromJson(response.data);
+      }
+      return null;
+    } catch (e) {
+      print('Erreur getCamionById: $e');
+      return null;
+    }
+  }
 } 

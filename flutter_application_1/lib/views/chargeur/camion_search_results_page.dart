@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/camion_model.dart';
+import 'dart:math';
+import '../../models/reservation_model.dart';
+import '../../services/reservation_service.dart';
+import '../../services/translation_service.dart';
 
 class ReservationDraft {
   final String lieuDepart;
@@ -19,17 +23,140 @@ class ReservationDraft {
   });
 }
 
-class CamionSearchResultsPage extends StatelessWidget {
+class CamionSearchResultsPage extends StatefulWidget {
   final ReservationDraft reservationDraft;
   final List<Camion> camions;
   const CamionSearchResultsPage({Key? key, required this.reservationDraft, required this.camions}) : super(key: key);
+
+  @override
+  State<CamionSearchResultsPage> createState() => _CamionSearchResultsPageState();
+}
+
+class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
+  late List<Camion> filteredCamions;
+  String? selectedType;
+  String? selectedMarque;
+  double? minCapacite;
+  String sortBy = 'capacite+'; // 'capacite+', 'capacite-'
+
+  // Suppression du calcul de distance et extraction de coordonnées
+  void _applySort() {
+    setState(() {
+      if (sortBy == 'capacite+') {
+        filteredCamions.sort((a, b) => a.capacite.compareTo(b.capacite));
+      } else if (sortBy == 'capacite-') {
+        filteredCamions.sort((a, b) => b.capacite.compareTo(a.capacite));
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    filteredCamions = List.from(widget.camions);
+  }
+
+  String _getText(String key) {
+    return TranslationService.getText(key);
+  }
+
+  void _openFilterSheet() async {
+    final types = widget.camions.map((c) => c.type).toSet().toList();
+    final marques = widget.camions.map((c) => c.marque).toSet().toList();
+    String? tempType = selectedType;
+    String? tempMarque = selectedMarque;
+    double? tempMinCapacite = minCapacite;
+
+    await showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(18)),
+      ),
+      builder: (context) {
+        return Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.filter_list, color: Color(0xFF1E3A8A)),
+                  const SizedBox(width: 8),
+                  Text(_getText('filters'), style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                  const Spacer(),
+                  TextButton(
+                    onPressed: () {
+                      setState(() {
+                        selectedType = null;
+                        selectedMarque = null;
+                        minCapacite = null;
+                        filteredCamions = List.from(widget.camions);
+                      });
+                      Navigator.pop(context);
+                    },
+                    child: Text(_getText('reset')),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              DropdownButtonFormField<String?>(
+                value: tempType,
+                items: [DropdownMenuItem<String?>(value: null, child: Text(_getText('type_label')))] +
+                    types.map((t) => DropdownMenuItem<String?>(value: t, child: Text(t))).toList(),
+                onChanged: (v) => tempType = v,
+                decoration: InputDecoration(labelText: _getText('type_label')),
+              ),
+              const SizedBox(height: 12),
+              DropdownButtonFormField<String?>(
+                value: tempMarque,
+                items: [DropdownMenuItem<String?>(value: null, child: Text(_getText('brand_label')))] +
+                    marques.map((m) => DropdownMenuItem<String?>(value: m, child: Text(m))).toList(),
+                onChanged: (v) => tempMarque = v,
+                decoration: InputDecoration(labelText: _getText('brand_label')),
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                initialValue: tempMinCapacite?.toString() ?? '',
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: _getText('min_capacity_label')),
+                onChanged: (v) => tempMinCapacite = double.tryParse(v),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () {
+                  setState(() {
+                    selectedType = tempType;
+                    selectedMarque = tempMarque;
+                    minCapacite = tempMinCapacite;
+                    filteredCamions = widget.camions.where((c) {
+                      final typeOk = selectedType == null || c.type == selectedType;
+                      final marqueOk = selectedMarque == null || c.marque == selectedMarque;
+                      final capaciteOk = minCapacite == null || c.capacite >= minCapacite!;
+                      return typeOk && marqueOk && capaciteOk;
+                    }).toList();
+                  });
+                  Navigator.pop(context);
+                },
+                child: Text(_getText('apply')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF1E3A8A),
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFFF5F7FA),
       appBar: AppBar(
-        title: const Text('Recherche', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
+        title: Text(_getText('search'), style: const TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.bold)),
         backgroundColor: Colors.white,
         elevation: 0,
         iconTheme: const IconThemeData(color: Color(0xFF1E3A8A)),
@@ -43,6 +170,21 @@ class CamionSearchResultsPage extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant CamionSearchResultsPage oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.camions != widget.camions) {
+      filteredCamions = List.from(widget.camions);
+      _applySort();
+    }
+  }
+
+  @override
+  void setState(VoidCallback fn) {
+    super.setState(fn);
+    _applySort();
   }
 
   // Map code postal -> ville (extrait, à compléter)
@@ -125,8 +267,8 @@ class CamionSearchResultsPage extends StatelessWidget {
   }
 
   Widget _buildHeader(BuildContext context) {
-    final villeDepart = villeDepuisAdresse(reservationDraft.lieuDepart);
-    final villeArrivee = villeDepuisAdresse(reservationDraft.lieuArrivee);
+    final villeDepart = villeDepuisAdresse(widget.reservationDraft.lieuDepart);
+    final villeArrivee = villeDepuisAdresse(widget.reservationDraft.lieuArrivee);
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Card(
@@ -154,13 +296,13 @@ class CamionSearchResultsPage extends StatelessWidget {
                   Icon(Icons.calendar_today, size: 18, color: Colors.grey[600]),
                   const SizedBox(width: 6),
                   Text(
-                    '${reservationDraft.dateReservation.day} ${_monthName(reservationDraft.dateReservation.month)} ${reservationDraft.dateReservation.year}',
+                    '${widget.reservationDraft.dateReservation.day} ${_monthName(widget.reservationDraft.dateReservation.month)} ${widget.reservationDraft.dateReservation.year}',
                     style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
                   ),
                   const SizedBox(width: 16),
                   Icon(Icons.inventory_2, size: 18, color: Colors.grey[600]),
                   const SizedBox(width: 6),
-                  Text('${reservationDraft.typeMarchandise} · ${reservationDraft.poids} kg', style: const TextStyle(color: Colors.blueGrey)),
+                  Text('${widget.reservationDraft.typeMarchandise} · ${widget.reservationDraft.poids} kg', style: const TextStyle(color: Colors.blueGrey)),
                 ],
               ),
             ],
@@ -176,9 +318,9 @@ class CamionSearchResultsPage extends StatelessWidget {
       child: Row(
         children: [
           ElevatedButton.icon(
-            onPressed: () {},
+            onPressed: _openFilterSheet,
             icon: const Icon(Icons.filter_list, size: 18),
-            label: const Text('Filtrer'),
+            label: Text(_getText('filter')),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.white,
               foregroundColor: const Color(0xFF1E3A8A),
@@ -202,10 +344,23 @@ class CamionSearchResultsPage extends StatelessWidget {
                   const SizedBox(width: 12),
                   const Icon(Icons.sort, color: Color(0xFF1E3A8A)),
                   const SizedBox(width: 8),
-                  const Text('Trier par', style: TextStyle(color: Color(0xFF1E3A8A), fontWeight: FontWeight.w500)),
+                  DropdownButton<String>(
+                    value: sortBy,
+                    underline: const SizedBox(),
+                    items: const [
+                      DropdownMenuItem(value: 'capacite+', child: Text('Capacité croissante')),
+                      DropdownMenuItem(value: 'capacite-', child: Text('Capacité décroissante')),
+                    ],
+                    onChanged: (v) {
+                      if (v != null) {
+                        setState(() {
+                          sortBy = v;
+                        });
+                        _applySort();
+                      }
+                    },
+                  ),
                   const Spacer(),
-                  Icon(Icons.expand_more, color: Colors.grey[600]),
-                  const SizedBox(width: 12),
                 ],
               ),
             ),
@@ -218,80 +373,190 @@ class CamionSearchResultsPage extends StatelessWidget {
   Widget _buildCamionList(BuildContext context) {
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-      itemCount: camions.length,
+      itemCount: filteredCamions.length,
       separatorBuilder: (_, __) => const SizedBox(height: 18),
       itemBuilder: (context, index) {
-        final camion = camions[index];
-        return Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withOpacity(0.08),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
+        final camion = filteredCamions[index];
+        return TweenAnimationBuilder<double>(
+          tween: Tween(begin: 0, end: 1),
+          duration: Duration(milliseconds: 400 + index * 80),
+          builder: (context, value, child) => Opacity(
+            opacity: value,
+            child: Transform.translate(
+              offset: Offset(0, 30 * (1 - value)),
+              child: child,
+            ),
           ),
-          child: Row(
-            children: [
-              Container(
-                width: 110,
-                height: 90,
-                decoration: BoxDecoration(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(18),
-                    bottomLeft: Radius.circular(18),
-                  ),
-                  color: const Color(0xFFE3E9F9),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.blueGrey.withOpacity(0.10),
+                  blurRadius: 24,
+                  offset: Offset(0, 8),
                 ),
-                child: camion.type.toLowerCase().contains('camionnette')
-                    ? Image.asset('assets/camionnette.png', fit: BoxFit.contain)
-                    : Image.asset('assets/camion.png', fit: BoxFit.contain),
-              ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        camion.type,
-                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: Color(0xFF1E3A8A)),
+              ],
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(18.0),
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Avatar camion
+                  Container(
+                    width: 64,
+                    height: 64,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${camion.marque} ${camion.modele}',
-                        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 16),
-                      ),
-                      const SizedBox(height: 4),
-                      Text('${camion.capacite} kg', style: const TextStyle(color: Colors.blueGrey)),
-                      const SizedBox(height: 8),
-                      Row(
-                        children: [
-                          Icon(Icons.star, color: Colors.amber[600], size: 18),
-                          const SizedBox(width: 4),
-                          Text('4.${index + 2}', style: const TextStyle(fontWeight: FontWeight.w600)),
-                          const Spacer(),
-                          ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF1E3A8A),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                              padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Color(0xFF1E3A8A).withOpacity(0.18),
+                          blurRadius: 12,
+                          offset: Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Center(
+                      child: Icon(Icons.local_shipping, size: 32, color: Colors.white),
+                    ),
+                  ),
+                  const SizedBox(width: 18),
+                  // Infos camion
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            // Badge type
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: camion.type == 'FTL' ? Color(0xFF3B82F6) : Color(0xFF6366F1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                camion.type,
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 12,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
                             ),
-                            onPressed: () {
-                              // Action de réservation
-                            },
-                            child: const Text('Réserver Maintenante'),
+                          ],
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          camion.marque,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 17,
+                            color: Color(0xFF1E293B),
                           ),
-                        ],
-                      ),
-                    ],
+                        ),
+                        Text(
+                          camion.modele,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w500,
+                            fontSize: 15,
+                            color: Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          children: [
+                            Icon(Icons.scale, color: Color(0xFF3B82F6), size: 20),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${camion.capacite.toStringAsFixed(1)} kg',
+                              style: const TextStyle(
+                                color: Color(0xFF334155),
+                                fontWeight: FontWeight.w600,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Icon(Icons.star, color: Colors.amber, size: 20),
+                            const SizedBox(width: 2),
+                            Text(
+                              (4.2 + index * 0.1).toStringAsFixed(1),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF334155),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 14),
+                        Row(
+                          children: [
+                            Expanded(
+                              child: ElevatedButton(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Color(0xFF1E3A8A),
+                                  foregroundColor: Colors.white,
+                                  elevation: 2,
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 14),
+                                ),
+                                onPressed: () async {
+                                  try {
+                                    final reservation = ReservationModel(
+                                      camionId: camion.id,
+                                      typeMarchandise: widget.reservationDraft.typeMarchandise,
+                                      volume: widget.reservationDraft.volume,
+                                      poids: widget.reservationDraft.poids,
+                                      lieuDepart: widget.reservationDraft.lieuDepart,
+                                      lieuArrivee: widget.reservationDraft.lieuArrivee,
+                                      dateReservation: widget.reservationDraft.dateReservation,
+                                    );
+                                    
+                                    await ReservationService().reserver(reservation);
+                                    // Afficher le message de succès
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(_getText('reservation_success')),
+                                        backgroundColor: Colors.green,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                    await Future.delayed(const Duration(milliseconds: 1500));
+                                    Navigator.of(context).pushReplacementNamed('/chargeur-home');
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('${_getText('reservation_error')} $e'),
+                                        backgroundColor: Colors.red,
+                                        duration: const Duration(seconds: 3),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Text(
+                                  _getText('reserve_now'),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, letterSpacing: 0.2),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
+                ],
               ),
-            ],
+            ),
           ),
         );
       },

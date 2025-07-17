@@ -1,4 +1,4 @@
-Map<String, String> ar = {
+final Map<String, String> ar = {
   // App
   'TransportPro': 'ترانسبورت برو',
   'platform_description': 'منصة النقل واللوجستيات',
@@ -221,4 +221,34 @@ Map<String, String> ar = {
   'search_trucks': 'ابحث عن الشاحنات',
   'required_field': 'حقل مطلوب',
   'loading_date': 'تاريخ التحميل',
+  // Interface de recherche de camions
+  'filters': 'الفلاتر',
+  'reset': 'إعادة تعيين',
+  'apply': 'تطبيق',
+  'type_label': 'نوع الشاحنة',
+  'brand_label': 'الماركة',
+  'min_capacity_label': 'الحمولة الدنيا (كلغ)',
+  'search_trucks': 'ابحث عن الشاحنات',
+  'reserve_now': 'احجز الآن',
+  'reservation_success': 'تم إرسال الحجز بنجاح!',
+  'reservation_error': 'حدث خطأ أثناء الحجز:',
+  'search': 'بحث',
+  'filter': 'تصفية',
+
+  // Interface de suivi (suivre_view)
+  'reservation_status_confirmed': 'تم التأكيد',
+  'reservation_status_in_progress': 'قيد التنفيذ',
+  'reservation_status_in_transit': 'في الطريق',
+  'reservation_status_delivered': 'تم التسليم',
+  'reservation_status_pending': 'قيد الانتظار',
+  'reservations_title': 'الحجوزات',
+  'no_reservations_found': 'لا توجد حجوزات',
+  'track_button': 'تتبع',
+  'tracking_title': 'تتبع',
+  'carrier_label': 'الناقل',
+  'status_label': 'الحالة',
+  'rating_label': 'التقييم',
+  'tracking_feature_coming': 'ميزة التتبع في الوقت الحقيقي ستتوفر قريباً...',
+  'close': 'إغلاق',
+  'all': 'الكل',
 }; 

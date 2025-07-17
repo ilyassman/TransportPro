@@ -1,4 +1,4 @@
-Map<String, String> fr = {
+final Map<String, String> fr = {
   // App
   'TransportPro': 'TransportPro',
   'platform_description': 'Plateforme de transport logistique',
@@ -224,4 +224,35 @@ Map<String, String> fr = {
   'search_trucks': 'Rechercher des Camions',
   'required_field': 'Champ requis',
   'loading_date': 'Date de chargement',
+
+  // Interface de recherche de camions
+  'filters': 'Filtres',
+  'reset': 'Réinitialiser',
+  'apply': 'Appliquer',
+  'type_label': 'Type de camion',
+  'brand_label': 'Marque',
+  'min_capacity_label': 'Capacité minimale (kg)',
+  'search_trucks': 'Rechercher des camions',
+  'reserve_now': 'Réserver Maintenant',
+  'reservation_success': 'Réservation envoyée avec succès !',
+  'reservation_error': 'Erreur lors de la réservation :',
+  'search': 'Recherche',
+  'filter': 'Filtrer',
+
+  // Interface de suivi (suivre_view)
+  'reservation_status_confirmed': 'Confirmé',
+  'reservation_status_in_progress': 'En cours',
+  'reservation_status_in_transit': 'En transit',
+  'reservation_status_delivered': 'Livré',
+  'reservation_status_pending': 'En attente',
+  'reservations_title': 'Réservations',
+  'no_reservations_found': 'Aucune réservation trouvée',
+  'track_button': 'Suivre',
+  'tracking_title': 'Suivi',
+  'carrier_label': 'Transporteur',
+  'status_label': 'Statut',
+  'rating_label': 'Note',
+  'tracking_feature_coming': 'Fonctionnalité de suivi en temps réel à implémenter...',
+  'close': 'Fermer',
+  'all': 'Tous',
 }; 

@@ -137,12 +137,14 @@ class _MapPickerViewState extends State<MapPickerView> {
       pickedLocation = latLng;
       pickedAddress = null;
       loadingAddress = true;
+      _camionsProches.clear(); // Efface les camions existants
     });
     final address = await getAddressFromLatLng(latLng);
     setState(() {
       pickedAddress = address;
       loadingAddress = false;
     });
+    await _fetchCamionsProches(latLng); // Affiche les camions proches de la nouvelle zone
   }
 
   Future<void> _searchAddress(String query) async {
@@ -447,12 +449,27 @@ class _MapPickerViewState extends State<MapPickerView> {
                       // Marqueurs camions dynamiques
                       if (_camionsProches.isNotEmpty)
                         MarkerLayer(
-                          markers: _camionsProches.map((camion) => Marker(
-                            width: 48,
-                            height: 48,
-                            point: LatLng(camion.latitude, camion.longitude),
-                            child: Image.asset('assets/truck_top.png', width: 40, height: 40),
-                          )).toList(),
+                          markers: _camionsProches.asMap().entries.map((entry) {
+                            final i = entry.key;
+                            final camion = entry.value;
+                            return Marker(
+                              width: 48,
+                              height: 48,
+                              point: LatLng(camion.latitude, camion.longitude),
+                              child: TweenAnimationBuilder<double>(
+                                tween: Tween(begin: 0, end: 1),
+                                duration: Duration(milliseconds: 400 + i * 80),
+                                builder: (context, value, child) => Opacity(
+                                  opacity: value,
+                                  child: Transform.scale(
+                                    scale: value,
+                                    child: child,
+                                  ),
+                                ),
+                                child: Image.asset('assets/truck_top.png', width: 40, height: 40),
+                              ),
+                            );
+                          }).toList(),
                         ),
                       // Marqueur utilisateur
                       if (pickedLocation != null)

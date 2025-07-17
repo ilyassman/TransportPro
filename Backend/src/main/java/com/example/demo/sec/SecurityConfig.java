@@ -50,6 +50,7 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/verify-reset-code").permitAll()
                         .requestMatchers(HttpMethod.POST, "/user").permitAll() // Permettre uniquement POST pour /user
                         .requestMatchers(HttpMethod.PUT, "/userupdate").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/camions/*/simulate-movement").permitAll()
                         .requestMatchers("/ws/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**","/email").permitAll()
                         .requestMatchers("/api/2fa/**").permitAll() // Permettre tous les endpoints 2FA

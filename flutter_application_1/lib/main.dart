@@ -105,6 +105,7 @@ class _MyAppState extends State<MyApp> {
           name: '/transporteur-home',
           page: () => const TransporteurHomeView(),
         ),
+
       ],
       locale: TranslationService.isArabic ? const Locale('ar') : const Locale('fr'),
       fallbackLocale: const Locale('fr'),

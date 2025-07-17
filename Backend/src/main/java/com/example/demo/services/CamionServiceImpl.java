@@ -38,6 +38,11 @@ public class CamionServiceImpl implements CamionService {
                 .collect(Collectors.toList());
     }
 
+    @Override
+    public Camion getCamionById(long id) {
+        return camionRepository.findById(id).orElse(null);
+    }
+
     private double distanceKm(double lat1, double lon1, double lat2, double lon2) {
         final int R = 6371; // Rayon de la Terre en km
         double dLat = Math.toRadians(lat2 - lat1);
