@@ -41,7 +41,7 @@ class _MapPickerViewState extends State<MapPickerView> {
     _initializeWithCurrentLocation();
     // Connexion WebSocket pour les camions
     camionChannel = WebSocketChannel.connect(
-      Uri.parse('ws://10.0.2.2:8082/ws/camions'), // Remplace localhost par l'IP backend si besoin
+      Uri.parse('ws://10.0.2.2:8082/ws/camions'), 
     );
     camionChannel.stream.listen((message) {
       try {

@@ -13,4 +13,7 @@ public interface ReservationService {
     
     // Récupérer les réservations par statut pour un utilisateur
     List<Reservation> getUserReservationsByStatus(Principal principal, String status);
+    
+    // Mettre à jour une réservation avec un camion
+    Reservation updateReservationWithCamion(Long reservationId, Long camionId, Principal principal,Boolean isIgnore);
 } 

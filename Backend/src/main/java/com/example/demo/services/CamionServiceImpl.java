@@ -78,7 +78,11 @@ public class CamionServiceImpl implements CamionService {
             ObjectMapper mapper = new ObjectMapper();
             String camionJson = mapper.writeValueAsString(camion1);
             SocketCamionUpdatesHandler.notifyClients(camionJson);
+            System.out.println("WebSocket notification envoyée pour le camion " + id + ": " + camionJson);
+
         } catch (Exception e) {
+            System.err.println("Erreur lors de la notification WebSocket pour le camion " + id + ": " + e.getMessage());
+            e.printStackTrace();
             // ignore
         }
         return camion;

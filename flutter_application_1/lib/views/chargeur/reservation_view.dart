@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_application_1/services/profile_service.dart';
 import 'package:flutter_application_1/services/translation_service.dart';
-import 'package:flutter_application_1/services/camion_service.dart'; // Added import for CamionService
-import 'package:http/http.dart' as http; // Added import for http
-import 'dart:convert'; // Added import for json
+import 'package:flutter_application_1/services/camion_service.dart';
+import 'package:flutter_application_1/services/reservation_service.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'map_picker_view.dart';
 import '../../models/camion_model.dart';
+import '../../models/reservation_model.dart';
 import 'camion_search_results_page.dart';
 
 class ReservationView extends StatefulWidget {
@@ -168,14 +170,27 @@ class _ReservationViewState extends State<ReservationView> {
                             ),
                             onPressed: () async {
                               if (_formKey.currentState!.validate()) {
-                                final draft = ReservationDraft(
+                                // Créer et sauvegarder la réservation d'abord
+                                final reservation = ReservationModel(
+                                  camionId: null,  // pas de camion pour l'instant
                                   lieuDepart: _departController.text,
                                   lieuArrivee: _arriveeController.text,
-                                  dateReservation: DateTime.now(), // à adapter si tu veux la vraie date
-                                  typeMarchandise: _getTypeMarchandiseForDB(), // Utiliser la version française pour la BDD
+                                  dateReservation: DateTime.now(),
+                                  typeMarchandise: _getTypeMarchandiseForDB(),
                                   poids: double.tryParse(_poidsController.text) ?? 0,
                                   volume: double.tryParse(_volumeController.text) ?? 0,
                                 );
+
+                                Map<String, dynamic> savedReservation;
+                                try {
+                                  savedReservation = await ReservationService().reserver(reservation);
+                                } catch (e) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(content: Text(_getText('error_saving_reservation'))),
+                                  );
+                                  return;
+                                }
+
                                 // Extraire la latitude/longitude du lieu de départ via Nominatim
                                 final address = _departController.text;
                                 double? latitude;
@@ -191,21 +206,35 @@ class _ReservationViewState extends State<ReservationView> {
                                     }
                                   }
                                 } catch (e) {
-                                  // ignore
+                                  print('Erreur géocodage: $e');
                                 }
+
                                 List<Camion> camions = [];
                                 if (latitude != null && longitude != null) {
-                                  camions = await CamionService().getCamionsProches(
-                                    latitude: latitude,
-                                    longitude: longitude,
-                                    rayonKm: 10,
-                                  );
+                                  try {
+                                    camions = await CamionService().getCamionsProches(
+                                      latitude: latitude,
+                                      longitude: longitude,
+                                      rayonKm: 10,
+                                    );
+                                  } catch (e) {
+                                    print('Erreur recherche camions: $e');
+                                  }
                                 }
+
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
                                     builder: (context) => CamionSearchResultsPage(
-                                      reservationDraft: draft,
+                                      reservationDraft: ReservationDraft(
+                                        reservationId: savedReservation['id'],
+                                        lieuDepart: _departController.text,
+                                        lieuArrivee: _arriveeController.text,
+                                        dateReservation: DateTime.now(),
+                                        typeMarchandise: _getTypeMarchandiseForDB(),
+                                        poids: double.tryParse(_poidsController.text) ?? 0,
+                                        volume: double.tryParse(_volumeController.text) ?? 0,
+                                      ),
                                       camions: camions,
                                     ),
                                   ),

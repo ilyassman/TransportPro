@@ -35,7 +35,6 @@ public class AppUser {
     private String phone;
     private String companyName;
     private String userType; // 'chargeur' ou 'transporteur'
-    private LocalDateTime createdAt;
     private boolean isActive = true;
     private boolean isActivated = false; // Compte activé par email
     private String activationToken; // Token pour l'activation

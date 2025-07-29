@@ -4,8 +4,11 @@ import 'dart:math';
 import '../../models/reservation_model.dart';
 import '../../services/reservation_service.dart';
 import '../../services/translation_service.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'dart:convert';
 
 class ReservationDraft {
+  final int reservationId;
   final String lieuDepart;
   final String lieuArrivee;
   final DateTime dateReservation;
@@ -14,6 +17,7 @@ class ReservationDraft {
   final double volume;
 
   ReservationDraft({
+    required this.reservationId,
     required this.lieuDepart,
     required this.lieuArrivee,
     required this.dateReservation,
@@ -38,6 +42,8 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
   String? selectedMarque;
   double? minCapacite;
   String sortBy = 'capacite+'; // 'capacite+', 'capacite-'
+  WebSocketChannel? _channel;
+  bool _waitingForResponse = true;
 
   // Suppression du calcul de distance et extraction de coordonnées
   void _applySort() {
@@ -50,10 +56,77 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
     });
   }
 
+  void _connectWebSocket() {
+    print('Connexion au WebSocket...');
+    final wsUrl = 'ws://10.0.2.2:8082/ws/camions';
+    _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+    
+    _channel!.stream.listen(
+      (message) {
+        print('Message reçu du WebSocket: $message');
+        try {
+          final data = jsonDecode(message);
+          // Ignorer les messages qui ne sont pas du type RESERVATION_ACCEPTED
+          if (data['type'] != 'RESERVATION_ACCEPTED') {
+            return;
+          }
+          
+          if (data['camion'] != null) {
+            final camionData = data['camion'];
+            final nouveauCamion = Camion(
+              id: camionData['id'],
+              immatriculation: camionData['immatriculation'],
+              type: camionData['type'],
+              capacite: camionData['capacite'].toDouble(),
+              marque: camionData['marque'],
+              modele: camionData['modele'],
+              disponible: camionData['disponible'],
+              latitude: camionData['latitude'],
+              longitude: camionData['longitude'],
+            );
+            
+            setState(() {
+              _waitingForResponse = false;
+              // Vérifier si le camion existe déjà dans la liste
+              bool camionExists = filteredCamions.any((c) => c.id == nouveauCamion.id);
+              if (!camionExists) {
+                // Ajouter le nouveau camion uniquement s'il n'existe pas déjà
+                filteredCamions.add(nouveauCamion);
+                _applySort(); // Appliquer le tri si nécessaire
+              }
+            });
+          }
+        } catch (e) {
+          print('Erreur de décodage du message: $e');
+        }
+      },
+      onError: (error) {
+        print('Erreur WebSocket: $error');
+        setState(() {
+          _waitingForResponse = false;
+        });
+      },
+      onDone: () {
+        print('WebSocket fermé');
+        setState(() {
+          _waitingForResponse = false;
+        });
+      }
+    );
+  }
+
   @override
   void initState() {
     super.initState();
-    filteredCamions = List.from(widget.camions);
+    // Initialiser avec une liste vide pour n'avoir que les camions du WebSocket
+    filteredCamions = [];
+    _connectWebSocket();
+  }
+
+  @override
+  void dispose() {
+    _channel?.sink.close();
+    super.dispose();
   }
 
   String _getText(String key) {
@@ -175,16 +248,7 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
   @override
   void didUpdateWidget(covariant CamionSearchResultsPage oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.camions != widget.camions) {
-      filteredCamions = List.from(widget.camions);
-      _applySort();
-    }
-  }
-
-  @override
-  void setState(VoidCallback fn) {
-    super.setState(fn);
-    _applySort();
+    // Ne pas réinitialiser la liste des camions lors de la mise à jour du widget
   }
 
   // Map code postal -> ville (extrait, à compléter)
@@ -371,6 +435,28 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
   }
 
   Widget _buildCamionList(BuildContext context) {
+    if (_waitingForResponse) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E3A8A)),
+            ),
+            const SizedBox(height: 20),
+            Text(
+              _getText('waiting_for_truck'),
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.w600,
+                color: Color(0xFF1E3A8A),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+    
     return ListView.separated(
       padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
       itemCount: filteredCamions.length,
@@ -512,17 +598,11 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
                                 ),
                                 onPressed: () async {
                                   try {
-                                    final reservation = ReservationModel(
-                                      camionId: camion.id,
-                                      typeMarchandise: widget.reservationDraft.typeMarchandise,
-                                      volume: widget.reservationDraft.volume,
-                                      poids: widget.reservationDraft.poids,
-                                      lieuDepart: widget.reservationDraft.lieuDepart,
-                                      lieuArrivee: widget.reservationDraft.lieuArrivee,
-                                      dateReservation: widget.reservationDraft.dateReservation,
+                                    // Mettre à jour la réservation existante avec l'ID du camion choisi
+                                    await ReservationService().updateReservation(
+                                      widget.reservationDraft.reservationId,
+                                      camion.id,false
                                     );
-                                    
-                                    await ReservationService().reserver(reservation);
                                     // Afficher le message de succès
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

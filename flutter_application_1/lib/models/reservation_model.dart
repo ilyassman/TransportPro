@@ -1,6 +1,6 @@
 class ReservationModel {
   final int? id;
-  final int camionId;
+  final int? camionId;
   final String typeMarchandise;
   final double volume;
   final double poids;
@@ -35,7 +35,7 @@ class ReservationModel {
   }
 
   Map<String, dynamic> toJson() => {
-    'camion': {'id': camionId},
+    if (camionId != null) 'camion': {'id': camionId},
     'typeMarchandise': _getTypeMarchandiseForDB(), // Utiliser la version française
     'volume': volume,
     'poids': poids,

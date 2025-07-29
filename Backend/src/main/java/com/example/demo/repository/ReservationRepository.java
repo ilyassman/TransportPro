@@ -13,4 +13,5 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     
     // Récupérer les réservations par statut pour un chargeur
     List<Reservation> findByChargeurAndStatutOrderByDateReservationDesc(AppUser chargeur, String statut);
+    List<Reservation> findByStatut(String statut);
 } 

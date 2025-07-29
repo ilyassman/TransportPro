@@ -52,8 +52,7 @@ public class AccountServiceImpl implements AccountService {
         String password = user.getPassword();
         user.setPassword(passwordEncoder.encode(password));
         
-        // Définir la date de création
-        user.setCreatedAt(LocalDateTime.now());
+
         
         // Définir le rôle par défaut selon le type d'utilisateur
         if (user.getUserType() != null) {

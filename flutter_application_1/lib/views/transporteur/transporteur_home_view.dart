@@ -34,14 +34,47 @@ class _TransporteurHomeViewState extends State<TransporteurHomeView> {
     final AuthController authController = Get.put(AuthController());
     return Scaffold(
       appBar: AppBar(
+        backgroundColor: const Color(0xFF1E3A8A),
+        foregroundColor: Colors.white,
         title: const Text('Accueil Transporteur'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
-            onPressed: () {
-              authController.logout();
-            },
+          Padding(
+            padding: const EdgeInsets.only(right: 8.0),
+            child: ElevatedButton.icon(
+              icon: const Icon(Icons.logout, color: Color(0xFF1E3A8A)),
+              label: const Text('Déconnexion', style: TextStyle(color: Color(0xFF1E3A8A))),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                elevation: 2,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text('Confirmation'),
+                      content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text('Annuler'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                            authController.logout();
+                          },
+                          child: const Text('Déconnexion', style: TextStyle(color: Colors.red)),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ],
       ),

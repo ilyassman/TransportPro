@@ -4,7 +4,7 @@ import '../models/reservation_model.dart';
 import 'utils/dio_client.dart';
 
 class ReservationService {
-  Future<void> reserver(ReservationModel reservation) async {
+  Future<Map<String, dynamic>> reserver(ReservationModel reservation) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     final dio = DioClient.create(token: token);
@@ -14,10 +14,25 @@ class ReservationService {
         '/api/reservations',
         data: reservation.toJson(),
       );
-      // Tu peux traiter la réponse ici si besoin
+      return response.data;
     } on DioException catch (e) {
       print('Erreur lors de la réservation: ${e.message}');
       throw Exception('Erreur lors de la réservation');
+    }
+  }
+
+  Future<void> updateReservation(int reservationId, int camionId, bool isIgnore) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    final dio = DioClient.create(token: token);
+
+    try {
+      await dio.put(
+        '/api/reservations/$reservationId/camion/$camionId/$isIgnore',
+      );
+    } on DioException catch (e) {
+      print('Erreur lors de la mise à jour de la réservation: ${e.message}');
+      throw Exception(e.response?.data ?? 'Erreur lors de la mise à jour de la réservation');
     }
   }
 
