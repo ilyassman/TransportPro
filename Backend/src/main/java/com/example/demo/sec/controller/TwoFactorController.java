@@ -110,7 +110,61 @@ public class TwoFactorController {
     }
 
     /**
-     * Désactiver la 2FA
+     * Désactiver la 2FA avec vérification du code
+     */
+    @PostMapping("/disable-with-verification")
+    public ResponseEntity<TwoFactorResponse> disableTwoFactorWithVerification(@RequestBody TwoFactorVerificationRequest request) {
+        try {
+            System.out.println("=== DÉBUT DÉSACTIVATION 2FA AVEC VÉRIFICATION ===");
+            System.out.println("Username: " + request.getUsername());
+            System.out.println("Code: " + request.getCode());
+            
+            AppUser user = accountService.loadUserByUsername(request.getUsername());
+            if (user == null) {
+                System.out.println("Erreur: Utilisateur non trouvé");
+                return ResponseEntity.badRequest()
+                    .body(new TwoFactorResponse(null, null, "Utilisateur non trouvé", false));
+            }
+
+            if (!user.isTwoFactorEnabled()) {
+                System.out.println("Erreur: 2FA déjà désactivée");
+                return ResponseEntity.badRequest()
+                    .body(new TwoFactorResponse(null, null, "2FA déjà désactivée", false));
+            }
+
+            System.out.println("Vérification du code TOTP...");
+            // Vérifier le code TOTP avant la désactivation
+            boolean isValid = twoFactorService.verifyCodeWithTolerance(user.getSecretKey(), request.getCode());
+            System.out.println("Code valide: " + isValid);
+            
+            if (!isValid) {
+                System.out.println("Erreur: Code invalide");
+                return ResponseEntity.badRequest()
+                    .body(new TwoFactorResponse(null, null, "Code invalide", false));
+            }
+
+            System.out.println("Désactivation de la 2FA...");
+            // Désactiver la 2FA
+            user.setTwoFactorEnabled(false);
+            user.setTwoFactorVerified(false);
+            user.setSecretKey(null);
+            
+            accountService.updateUserObje(user);
+            System.out.println("2FA désactivée avec succès");
+
+            return ResponseEntity.ok(new TwoFactorResponse(null, null, "2FA désactivée avec succès", true));
+
+        } catch (Exception e) {
+            System.out.println("=== ERREUR DÉSACTIVATION 2FA ===");
+            System.out.println("Erreur: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                .body(new TwoFactorResponse(null, null, "Erreur lors de la désactivation: " + e.getMessage(), false));
+        }
+    }
+
+    /**
+     * Désactiver la 2FA (ancienne méthode sans vérification)
      */
     @PostMapping("/disable")
     public ResponseEntity<TwoFactorResponse> disableTwoFactor(@RequestParam String username) {
@@ -209,6 +263,7 @@ public class TwoFactorController {
             tokens.put("access_token", jwtAccessToken);
             tokens.put("refresh_token", jwtRefreshToken);
             tokens.put("requires2FA", "false");
+            tokens.put("userType", appUser.getUserType() != null ? appUser.getUserType() : "chargeur");
             
             return ResponseEntity.ok(tokens);
 

@@ -102,22 +102,35 @@ class AuthController extends GetxController {
   /// Finaliser la connexion avec 2FA
   Future<void> finalizeLoginWith2FA(String username, int code) async {
     try {
+      print('=== DÉBUT FINALIZE LOGIN 2FA ===');
+      print('Username: $username, Code: $code');
       isLoading(true);
       
       final response = await authService.finalizeLoginWith2FA(username, code);
+      print('Réponse du serveur: $response');
       
       // Sauvegarder les tokens
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('access_token', response['access_token']);
       await prefs.setString('refresh_token', response['refresh_token']);
+      print('Tokens sauvegardés');
       
-      // Rediriger vers la page users
-      // Ne rien faire ici, la navigation est gérée dans login_view.dart
+      // Déterminer la page d'accueil selon le type d'utilisateur
+      String userType = response['userType'] ?? 'chargeur';
+      String homeRoute = userType == 'transporteur' ? '/transporteur-home' : '/chargeur-home';
+      print('Type utilisateur: $userType, Route: $homeRoute');
+      
+      // Rediriger vers la page d'accueil appropriée
+      print('Redirection vers: $homeRoute');
+      Get.offAllNamed(homeRoute);
       
     } catch (e) {
+      print('=== ERREUR FINALIZE LOGIN 2FA ===');
+      print('Erreur: $e');
       rethrow;
     } finally {
       isLoading(false);
+      print('=== FIN FINALIZE LOGIN 2FA ===');
     }
   }
 

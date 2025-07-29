@@ -1,21 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import '../../controllers/auth_controller.dart';
 import '../../controllers/two_factor_controller.dart';
 import '../../services/translation_service.dart';
 
-class TwoFactorLoginView extends StatefulWidget {
-  const TwoFactorLoginView({Key? key}) : super(key: key);
+class TwoFactorDisableView extends StatefulWidget {
+  const TwoFactorDisableView({Key? key}) : super(key: key);
 
   @override
-  State<TwoFactorLoginView> createState() => _TwoFactorLoginViewState();
+  State<TwoFactorDisableView> createState() => _TwoFactorDisableViewState();
 }
 
-class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
+class _TwoFactorDisableViewState extends State<TwoFactorDisableView> {
   final _formKey = GlobalKey<FormState>();
   final _codeController = TextEditingController();
-  final AuthController authController = Get.find<AuthController>();
   final TwoFactorController twoFactorController = Get.find<TwoFactorController>();
   
   String? username;
@@ -44,7 +42,7 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
     
     if (username == null) {
       setState(() {
-        errorMessage = _getText('2fa_username_missing');
+        errorMessage = 'Nom d\'utilisateur manquant';
       });
       return;
     }
@@ -55,20 +53,24 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
       });
       
       final code = int.parse(_codeController.text);
-      await authController.finalizeLoginWith2FA(username!, code);
+      print('=== DÉBUT DÉSACTIVATION 2FA ===');
+      print('Username: $username, Code: $code');
       
-      // Si on arrive ici, la connexion a réussi
-      // La redirection est gérée dans authController.finalizeLoginWith2FA
+      // Passer le code au contrôleur
+      twoFactorController.codeController.text = _codeController.text;
+      
+      await twoFactorController.disableTwoFactorWithVerification();
+      
+      print('=== FIN DÉSACTIVATION 2FA ===');
       
     } catch (e) {
-      print('Erreur lors de la vérification 2FA: $e');
+      print('=== ERREUR DÉSACTIVATION 2FA ===');
+      print('Erreur: $e');
       setState(() {
         if (e.toString().contains('Code invalide') || e.toString().contains('invalid')) {
-          errorMessage = _getText('2fa_invalid_code');
-        } else if (e.toString().contains('user_not_found')) {
-          errorMessage = _getText('user_not_found');
+          errorMessage = 'Code invalide. Veuillez réessayer.';
         } else {
-          errorMessage = _getText('2fa_verification_failed');
+          errorMessage = 'Erreur lors de la désactivation 2FA: ${e.toString()}';
         }
       });
     }
@@ -116,14 +118,14 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
           height: 80,
           decoration: BoxDecoration(
             gradient: const LinearGradient(
-              colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
+              colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(20),
             boxShadow: [
               BoxShadow(
-                color: const Color(0xFF1E3A8A).withOpacity(0.3),
+                color: const Color(0xFFEF4444).withOpacity(0.3),
                 blurRadius: 15,
                 offset: const Offset(0, 5),
               ),
@@ -137,7 +139,7 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
         ),
         const SizedBox(height: 16),
         Text(
-          _getText('two_factor_auth'),
+          'Désactiver 2FA',
           style: const TextStyle(
             fontSize: 24,
             fontWeight: FontWeight.bold,
@@ -146,7 +148,7 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
         ),
         const SizedBox(height: 8),
         Text(
-          _getText('2fa_enter_code'),
+          'Entrez votre code 2FA pour confirmer la désactivation',
           style: TextStyle(
             fontSize: 16,
             color: Colors.grey[600],
@@ -177,7 +179,7 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Text(
-              _getText('2fa_verification_code'),
+              'Code de vérification',
               style: const TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.w600,
@@ -193,7 +195,7 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
                 LengthLimitingTextInputFormatter(6),
               ],
               decoration: InputDecoration(
-                hintText: _getText('2fa_verification_code_hint'),
+                hintText: 'Entrez votre code 2FA',
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(12),
                   borderSide: BorderSide(color: Colors.grey[300]!),
@@ -212,10 +214,10 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return _getText('2fa_verification_code_required');
+                  return 'Le code est requis';
                 }
                 if (value.length != 6) {
-                  return _getText('2fa_verification_code_length');
+                  return 'Le code doit contenir 6 chiffres';
                 }
                 return null;
               },
@@ -245,9 +247,9 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
             ],
             const SizedBox(height: 24),
             Obx(() => ElevatedButton(
-              onPressed: authController.isLoading.value ? null : _handleSubmit,
+              onPressed: twoFactorController.isVerifying.value ? null : _handleSubmit,
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
+                backgroundColor: const Color(0xFFEF4444),
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
@@ -255,33 +257,57 @@ class _TwoFactorLoginViewState extends State<TwoFactorLoginView> {
                 ),
                 elevation: 2,
               ),
-                                 child: authController.isLoading.value
-                       ? const SizedBox(
-                           height: 20,
-                           width: 20,
-                           child: CircularProgressIndicator(
-                             strokeWidth: 2,
-                             valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                           ),
-                         )
-                       : Text(
-                           _getText('2fa_verify'),
-                           style: const TextStyle(
-                             fontSize: 16,
-                             fontWeight: FontWeight.w600,
-                           ),
-                         ),
+              child: twoFactorController.isVerifying.value
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                      ),
+                    )
+                  : Text(
+                      'Désactiver 2FA',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
             )),
+            const SizedBox(height: 16),
+            // Afficher les erreurs du contrôleur
+            Obx(() => twoFactorController.errorMessage.value.isNotEmpty
+                ? Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: Colors.red[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error_outline, color: Colors.red[600], size: 20),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            twoFactorController.errorMessage.value,
+                            style: TextStyle(color: Colors.red[600]),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                : const SizedBox.shrink()),
             const SizedBox(height: 16),
             TextButton(
               onPressed: () => Get.back(),
-                             child: Text(
-                 _getText('2fa_back_to_login'),
-                 style: const TextStyle(
-                   color: Color(0xFF1E3A8A),
-                   fontWeight: FontWeight.w500,
-                 ),
-               ),
+              child: Text(
+                'Annuler',
+                style: const TextStyle(
+                  color: Color(0xFF1E3A8A),
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
           ],
         ),

@@ -83,6 +83,61 @@ public class AccountRestController {
         accountService.updateUser(id,user);
 
     }
+
+    @PutMapping("/update-profile")
+    public ResponseEntity<?> updateProfile(@RequestBody AppUser user, Principal principal){
+        try {
+            System.out.println("=== DÉBUT MISE À JOUR PROFIL ===");
+            String username = principal.getName();
+            System.out.println("Username: " + username);
+            System.out.println("Données reçues: " + user);
+            
+            AppUser currentUser = accountService.loadUserByUsername(username);
+            
+            if (currentUser == null) {
+                System.out.println("Erreur: Utilisateur non trouvé");
+                return ResponseEntity.badRequest()
+                    .body(Map.of("error", "user_not_found", "message", "Utilisateur non trouvé"));
+            }
+            
+            System.out.println("Utilisateur trouvé: " + currentUser.getUsername());
+            
+            // Mettre à jour seulement les champs autorisés
+            if (user.getFirstName() != null) {
+                System.out.println("Mise à jour firstName: " + user.getFirstName());
+                currentUser.setFirstName(user.getFirstName());
+            }
+            if (user.getLastName() != null) {
+                System.out.println("Mise à jour lastName: " + user.getLastName());
+                currentUser.setLastName(user.getLastName());
+            }
+            if (user.getPhone() != null) {
+                System.out.println("Mise à jour phone: " + user.getPhone());
+                currentUser.setPhone(user.getPhone());
+            }
+            if (user.getCompanyName() != null) {
+                System.out.println("Mise à jour companyName: " + user.getCompanyName());
+                currentUser.setCompanyName(user.getCompanyName());
+            }
+            
+            // Sauvegarder les modifications
+            accountService.updateUserObje(currentUser);
+            System.out.println("Profil mis à jour avec succès");
+            
+            return ResponseEntity.ok(Map.of(
+                "success", true,
+                "message", "Profil mis à jour avec succès",
+                "user", currentUser
+            ));
+            
+        } catch (Exception e) {
+            System.out.println("=== ERREUR MISE À JOUR PROFIL ===");
+            System.out.println("Erreur: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.badRequest()
+                .body(Map.of("error", "update_error", "message", "Erreur lors de la mise à jour: " + e.getMessage()));
+        }
+    }
     @PutMapping("/userupdatePassword")
     public AppUser updateUserPass(@RequestBody AppUser user){
         return accountService.updatePassword(user.getUsername(),user.getPassword());

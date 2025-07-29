@@ -4,6 +4,7 @@ import com.example.demo.entities.Reservation;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 public interface ReservationService {
     Reservation createReservation(Principal principal, Reservation reservation);
@@ -16,4 +17,10 @@ public interface ReservationService {
     
     // Mettre à jour une réservation avec un camion
     Reservation updateReservationWithCamion(Long reservationId, Long camionId, Principal principal,Boolean isIgnore);
+    
+    // Récupérer les récapitulatifs de réservations
+    List<Map<String, Object>> getReservationRecapitulatif(Principal principal);
+    
+    // Récupérer une réservation par ID
+    Reservation getReservationById(Long reservationId);
 } 

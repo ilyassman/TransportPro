@@ -89,6 +89,8 @@ class _SuivreViewState extends State<SuivreView> {
       lieuDepart: data['lieuDepart'] ?? '',
       lieuArrivee: data['lieuArrivee'] ?? '',
       transporteurNom: data['camion']?['transporteur']?['username'] ?? 'Transporteur inconnu',
+      transporteurPhone: data['camion']?['transporteur']?['phone'] ?? '',
+      transporteurId: data['camion']?['transporteur']?['id'] ?? 0, // Ajouté
       rating: 4.5, // Note par défaut, à adapter selon vos besoins
       dateReservation: DateTime.parse(data['dateReservation'] ?? DateTime.now().toIso8601String()),
       typeMarchandise: data['typeMarchandise'] ?? 'Normal',

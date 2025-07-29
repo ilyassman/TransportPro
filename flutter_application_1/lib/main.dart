@@ -11,6 +11,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_application_1/views/auth/forgot_password_view.dart';
 import 'package:flutter_application_1/views/auth/two_factor_login_view.dart';
 import 'package:flutter_application_1/views/auth/two_factor_setup_view.dart';
+import 'package:flutter_application_1/views/auth/two_factor_disable_view.dart';
+import 'package:flutter_application_1/views/chargeur/edit_profile_view.dart';
 import 'package:flutter_application_1/views/auth/signup_view.dart';
 import 'package:flutter_application_1/views/auth/account_activation_view.dart';
 import 'package:flutter_application_1/views/profile_view.dart';
@@ -93,6 +95,11 @@ class _MyAppState extends State<MyApp> {
           binding: TwoFactorBinding(widget.token),
         ),
         GetPage(
+          name: '/two-factor-disable',
+          page: () => const TwoFactorDisableView(),
+          binding: TwoFactorBinding(widget.token),
+        ),
+        GetPage(
           name: '/profile',
           page: () => const ProfileView(),
           binding: ProfileBinding(),
@@ -104,6 +111,11 @@ class _MyAppState extends State<MyApp> {
         GetPage(
           name: '/transporteur-home',
           page: () => const TransporteurHomeView(),
+        ),
+        GetPage(
+          name: '/edit-profile',
+          page: () => const EditProfileView(),
+          binding: ProfileBinding(),
         ),
 
       ],

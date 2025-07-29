@@ -12,12 +12,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class WebSocketConfig implements WebSocketConfigurer {
     @Autowired
     private SocketCamionUpdatesHandler socketCamionUpdatesHandler;
+    
+    @Autowired
+    private ChatWebSocketHandler chatWebSocketHandler;
 
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry registry) {
         registry.addHandler(new SocketUpdatesHandler(), "/ws/users")
                 .setAllowedOrigins("http://localhost:3000");
         registry.addHandler(socketCamionUpdatesHandler, "/ws/camions")
+                .setAllowedOrigins("*");
+        registry.addHandler(chatWebSocketHandler, "/ws/chat")
                 .setAllowedOrigins("*");
     }
 }
