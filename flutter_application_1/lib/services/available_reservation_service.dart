@@ -98,6 +98,22 @@ class AvailableReservationService {
     }
   }
   
+  // Nouvelle méthode pour récupérer les réservations avec les informations du chargeur
+  Future<List<AvailableReservation>> getMyReservationsWithChargeurInfo(String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    final dio = DioClient.create(token: token);
+
+    try {
+      final response = await dio.get('/api/reservations/my/$status/with-chargeur');
+      final List data = response.data;
+      return data.map((json) => AvailableReservation.fromJson(json)).toList();
+    } on DioException catch (e) {
+      print('Erreur lors de la récupération de mes réservations avec info chargeur: ${e.message}');
+      throw Exception('Erreur lors de la récupération de mes réservations avec info chargeur');
+    }
+  }
+  
   Future<Map<String, dynamic>> updateReservationStatus(int reservationId, String newStatus) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';

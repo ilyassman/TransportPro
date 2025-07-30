@@ -199,6 +199,51 @@ public class ReservationServiceImpl implements ReservationService {
     }
     
     @Override
+    public List<Map<String, Object>> getMyReservationsWithChargeurInfo(Principal principal, String status) {
+        AppUser transporteur = userRepository.findByUsername(principal.getName());
+        if (transporteur == null) {
+            throw new RuntimeException("Transporteur non trouvé");
+        }
+        
+        List<Reservation> reservations = reservationRepository.findByCamionTransporteurAndStatutOrderByDateReservationDesc(transporteur, status);
+        
+        return reservations.stream().map(reservation -> {
+            Map<String, Object> reservationMap = new HashMap<>();
+            reservationMap.put("id", reservation.getId());
+            reservationMap.put("typeMarchandise", reservation.getTypeMarchandise());
+            reservationMap.put("volume", reservation.getVolume());
+            reservationMap.put("poids", reservation.getPoids());
+            reservationMap.put("lieuDepart", reservation.getLieuDepart());
+            reservationMap.put("lieuArrivee", reservation.getLieuArrivee());
+            reservationMap.put("dateReservation", reservation.getDateReservation());
+            reservationMap.put("dateLivraison", reservation.getDateLivraison());
+            reservationMap.put("statut", reservation.getStatut());
+            reservationMap.put("tarif", reservation.getTarif());
+            reservationMap.put("modePaiement", reservation.getModePaiement());
+            reservationMap.put("createdAt", reservation.getDateReservation());
+            
+            // Informations du chargeur
+            Map<String, Object> chargeurMap = new HashMap<>();
+            if (reservation.getChargeur() != null) {
+                chargeurMap.put("id", reservation.getChargeur().getId());
+                chargeurMap.put("nom", reservation.getChargeur().getFirstName() + " " + reservation.getChargeur().getLastName());
+                chargeurMap.put("username", reservation.getChargeur().getUsername());
+                chargeurMap.put("email", reservation.getChargeur().getEmail());
+                chargeurMap.put("phone", reservation.getChargeur().getPhone());
+            } else {
+                chargeurMap.put("id", 0);
+                chargeurMap.put("nom", "Chargeur inconnu");
+                chargeurMap.put("username", "chargeur_inconnu");
+                chargeurMap.put("email", "");
+                chargeurMap.put("phone", "");
+            }
+            reservationMap.put("chargeur", chargeurMap);
+            
+            return reservationMap;
+        }).toList();
+    }
+    
+    @Override
     public Reservation updateReservationStatus(Long reservationId, String newStatus, Principal principal) {
         Reservation reservation = reservationRepository.findById(reservationId)
                 .orElseThrow(() -> new RuntimeException("Réservation non trouvée"));

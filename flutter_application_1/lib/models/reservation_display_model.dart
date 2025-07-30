@@ -5,9 +5,9 @@ class ReservationDisplay {
   final String status;
   final String lieuDepart;
   final String lieuArrivee;
-  final String transporteurNom;
+  final String transporteurNom; // Nom du transporteur OU du chargeur selon le contexte
   final String transporteurPhone;
-  final int transporteurId; // Ajouté
+  final int transporteurId; // ID du transporteur OU du chargeur selon le contexte
   final double rating;
   final DateTime dateReservation;
   final String typeMarchandise;
@@ -22,7 +22,7 @@ class ReservationDisplay {
     required this.lieuArrivee,
     required this.transporteurNom,
     required this.transporteurPhone,
-    required this.transporteurId, // Ajouté
+    required this.transporteurId,
     required this.rating,
     required this.dateReservation,
     required this.typeMarchandise,

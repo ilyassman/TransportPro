@@ -36,6 +36,9 @@ public interface ReservationService {
     List<Reservation> getMyReservationsByStatus(Principal principal, String status);
     Reservation updateReservationStatus(Long reservationId, String newStatus, Principal principal);
     
+    // Nouvelle méthode pour retourner les réservations avec les informations du chargeur
+    List<Map<String, Object>> getMyReservationsWithChargeurInfo(Principal principal, String status);
+    
     // Méthode pour les statistiques du transporteur
     Map<String, Object> getMyStatistics(Principal principal);
     

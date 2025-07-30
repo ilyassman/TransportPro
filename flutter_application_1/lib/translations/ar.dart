@@ -366,4 +366,11 @@ final Map<String, String> ar = {
   'error_sending_message': 'خطأ في إرسال الرسالة',
   'connected': 'متصل',
   'disconnected': 'غير متصل',
+  
+  // Nouvelles traductions pour le transporteur
+  'edit_profile': 'تعديل الملف الشخصي',
+  'edit_profile_subtitle': 'قم بتحديث معلوماتك الشخصية',
+  'profile_update_success': 'تم تحديث الملف الشخصي بنجاح',
+  'profile_update_error': 'خطأ في تحديث الملف الشخصي',
+  'save': 'حفظ',
 }; 

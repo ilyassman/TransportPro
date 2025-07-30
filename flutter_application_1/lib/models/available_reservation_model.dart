@@ -54,6 +54,11 @@ class AvailableReservation {
     return chargeur['nom'] ?? chargeur['username'] ?? 'Chargeur';
   }
 
+  // Méthode pour obtenir l'ID du chargeur
+  int get chargeurId {
+    return chargeur['id'] ?? 0;
+  }
+
   // Méthode pour obtenir la couleur du statut
   String getStatusColor() {
     switch (statut.toUpperCase()) {

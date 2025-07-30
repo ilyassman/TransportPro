@@ -3,7 +3,7 @@ import 'package:get/get.dart';
 import '../../services/profile_service.dart';
 import '../../services/translation_service.dart';
 import '../../controllers/auth_controller.dart';
-//import 'edit_profile_view.dart';
+import 'edit_profile_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -633,11 +633,7 @@ class _ProfileViewState extends State<ProfileView> {
   }
 
   void _navigateToEditProfile() {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => const ProfileView(),
-      ),
-    ).then((_) {
+    Get.toNamed('/transporteur-edit-profile')?.then((_) {
       // Recharger les données après retour
       refreshProfile();
     });

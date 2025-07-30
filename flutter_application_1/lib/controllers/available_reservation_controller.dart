@@ -98,7 +98,8 @@ class AvailableReservationController extends GetxController {
   Future<void> loadMyReservationsByStatus(String status) async {
     try {
       isLoading(true);
-      final myReservations = await _service.getMyReservationsByStatus(status);
+      // Utiliser la nouvelle méthode qui inclut les informations du chargeur
+      final myReservations = await _service.getMyReservationsWithChargeurInfo(status);
       reservations.assignAll(myReservations);
     } catch (e) {
       print('Erreur lors du chargement de mes réservations par statut: $e');

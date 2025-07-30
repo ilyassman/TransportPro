@@ -120,6 +120,18 @@ public class ReservationController {
         }
     }
     
+    @GetMapping("/my/{status}/with-chargeur")
+    public ResponseEntity<List<Map<String, Object>>> getMyReservationsWithChargeurInfo(
+            @PathVariable String status,
+            Principal principal) {
+        try {
+            List<Map<String, Object>> reservations = reservationService.getMyReservationsWithChargeurInfo(principal, status);
+            return ResponseEntity.ok(reservations);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().build();
+        }
+    }
+    
     @PutMapping("/{reservationId}/status")
     public ResponseEntity<?> updateReservationStatus(
         @PathVariable Long reservationId,

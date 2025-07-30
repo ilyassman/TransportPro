@@ -4,6 +4,7 @@ import '../../controllers/available_reservation_controller.dart';
 import '../../models/available_reservation_model.dart';
 import '../../services/translation_service.dart';
 import 'reservation_details_view.dart';
+import '../../models/reservation_display_model.dart'; // Correction de l'import
 
 class MyReservationsView extends StatefulWidget {
   const MyReservationsView({super.key});
@@ -502,14 +503,13 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.info_outline, size: 18),
-                          const SizedBox(width: 6),
+                          const Icon(Icons.visibility, size: 16),
+                          const SizedBox(width: 8),
                           Text(
-                            'Voir détails',
+                            'Détails',
                             style: const TextStyle(
-                              fontSize: 14,
                               fontWeight: FontWeight.w600,
-                              fontFamily: 'Montserrat',
+                              fontSize: 14,
                             ),
                           ),
                         ],
@@ -518,7 +518,31 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
                   ),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: _buildStatusChangeButton(reservation),
+                    child: OutlinedButton(
+                      onPressed: () => _openChat(reservation),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFF10B981),
+                        side: const BorderSide(color: Color(0xFF10B981)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.chat, size: 16),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Chat',
+                            style: const TextStyle(
+                              fontWeight: FontWeight.w600,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -700,6 +724,39 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
           ),
         );
       }
+    }
+  }
+
+  Future<void> _openChat(AvailableReservation reservation) async {
+    try {
+      // Convertir AvailableReservation en ReservationDisplay pour la vue chat
+      final reservationDisplay = ReservationDisplay(
+        id: reservation.id,
+        status: reservation.statut,
+        lieuDepart: reservation.lieuDepart,
+        lieuArrivee: reservation.lieuArrivee,
+        transporteurNom: reservation.chargeurNom,
+        transporteurPhone: '', // Pas de téléphone disponible
+        transporteurId: reservation.chargeurId, // ID du chargeur
+        rating: 4.5,
+        dateReservation: reservation.dateReservation,
+        typeMarchandise: reservation.typeMarchandise,
+        poids: reservation.poids,
+        volume: reservation.volume,
+        camionId: 0, // Pas de camion pour les réservations du transporteur
+      );
+      
+      Get.toNamed('/transporteur-chat', arguments: {
+        'reservation': reservationDisplay,
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'ouverture du chat: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
     }
   }
 } 

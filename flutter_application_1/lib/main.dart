@@ -22,6 +22,9 @@ import 'views/transporteur/transporteur_check_view.dart';
 import 'views/transporteur/camion_form_view.dart';
 import 'controllers/transporteur_binding.dart';
 import 'services/profile_service.dart';
+import 'views/transporteur/chat_view.dart';
+import 'views/transporteur/edit_profile_view.dart' as transporteur_edit;
+import 'views/chargeur/edit_profile_view.dart' as chargeur_edit;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -125,8 +128,21 @@ class _MyAppState extends State<MyApp> {
           page: () => const CamionFormView(),
         ),
         GetPage(
+          name: '/transporteur-edit-profile',
+          page: () => const transporteur_edit.EditProfileView(),
+          binding: ProfileBinding(),
+        ),
+        GetPage(
+          name: '/transporteur-chat',
+          page: () {
+            final args = Get.arguments;
+            final reservation = args['reservation'];
+            return ChatView(reservation: reservation);
+          },
+        ),
+        GetPage(
           name: '/edit-profile',
-          page: () => const EditProfileView(),
+          page: () => const chargeur_edit.EditProfileView(),
           binding: ProfileBinding(),
         ),
 

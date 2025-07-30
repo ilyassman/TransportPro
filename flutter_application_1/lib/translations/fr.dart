@@ -367,4 +367,11 @@ final Map<String, String> fr = {
   'error_sending_message': 'Erreur lors de l\'envoi du message',
   'connected': 'Connecté',
   'disconnected': 'Déconnecté',
+  
+  // Nouvelles traductions pour le transporteur
+  'edit_profile': 'Modifier le profil',
+  'edit_profile_subtitle': 'Mettez à jour vos informations personnelles',
+  'profile_update_success': 'Profil mis à jour avec succès',
+  'profile_update_error': 'Erreur lors de la mise à jour du profil',
+  'save': 'Enregistrer',
 }; 
