@@ -6,7 +6,7 @@ import '../../controllers/two_factor_controller.dart';
 import '../../services/translation_service.dart';
 
 class TwoFactorSetupView extends GetView<TwoFactorController> {
-  const TwoFactorSetupView({Key? key}) : super(key: key);
+  const TwoFactorSetupView({super.key});
 
   String _getText(String key) {
     return TranslationService.getText(key);

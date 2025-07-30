@@ -10,6 +10,8 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.lang.reflect.Field;
+import com.example.demo.sec.entity.AppUser;
+import java.util.Optional;
 
 @Service
 public class CamionServiceImpl implements CamionService {
@@ -55,11 +57,28 @@ public class CamionServiceImpl implements CamionService {
     }
     @Override
     public Camion updateCamion(long id,Camion camion){
-        Camion camion1 = camionRepository.findById(id).get();
-        if(camion.getLatitude() != null)
+        System.out.println("=== Service updateCamion ===");
+        System.out.println("ID: " + id);
+        System.out.println("Camion reçu: " + camion);
+        
+        Optional<Camion> optionalCamion = camionRepository.findById(id);
+        if (optionalCamion.isEmpty()) {
+            System.out.println("Erreur: Camion avec l'ID " + id + " non trouvé");
+            return null;
+        }
+        
+        Camion camion1 = optionalCamion.get();
+        System.out.println("Camion trouvé en DB: " + camion1);
+        System.out.println("Ancienne position: lat=" + camion1.getLatitude() + ", lng=" + camion1.getLongitude());
+        
+        if(camion.getLatitude() != null) {
             camion1.setLatitude(camion.getLatitude());
-        if (camion.getLongitude() != null)
+            System.out.println("Nouvelle latitude: " + camion.getLatitude());
+        }
+        if (camion.getLongitude() != null) {
             camion1.setLongitude(camion.getLongitude());
+            System.out.println("Nouvelle longitude: " + camion.getLongitude());
+        }
         if (camion.getCapacite() !=null)
             camion1.setCapacite(camion.getCapacite());
         if(camion.getDisponible() != null)
@@ -72,11 +91,15 @@ public class CamionServiceImpl implements CamionService {
             camion1.setType(camion.getType());
         if(camion.getImmatriculation() != null)
             camion1.setImmatriculation(camion.getImmatriculation());
-        camionRepository.save(camion1);
+        
+        Camion updatedCamion = camionRepository.save(camion1);
+        System.out.println("Camion sauvegardé: " + updatedCamion);
+        System.out.println("Position finale: lat=" + updatedCamion.getLatitude() + ", lng=" + updatedCamion.getLongitude());
+        
         // Notifier les clients WebSocket
         try {
             ObjectMapper mapper = new ObjectMapper();
-            String camionJson = mapper.writeValueAsString(camion1);
+            String camionJson = mapper.writeValueAsString(updatedCamion);
             SocketCamionUpdatesHandler.notifyClients(camionJson);
             System.out.println("WebSocket notification envoyée pour le camion " + id + ": " + camionJson);
 
@@ -85,6 +108,11 @@ public class CamionServiceImpl implements CamionService {
             e.printStackTrace();
             // ignore
         }
-        return camion;
+        return updatedCamion;
+    }
+
+    @Override
+    public Optional<Camion> getCamionByTransporteur(AppUser transporteur) {
+        return camionRepository.findByTransporteur(transporteur);
     }
 } 

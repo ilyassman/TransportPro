@@ -12,7 +12,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 
 class MapPickerView extends StatefulWidget {
   final String title;
-  const MapPickerView({Key? key, this.title = 'Choisir un lieu'}) : super(key: key);
+  const MapPickerView({super.key, this.title = 'Choisir un lieu'});
 
   @override
   State<MapPickerView> createState() => _MapPickerViewState();
@@ -41,18 +41,20 @@ class _MapPickerViewState extends State<MapPickerView> {
     _initializeWithCurrentLocation();
     // Connexion WebSocket pour les camions
     camionChannel = WebSocketChannel.connect(
-      Uri.parse('ws://10.0.2.2:8082/ws/camions'), 
+              Uri.parse('ws://192.168.1.104:8082/ws/camions'), 
     );
     camionChannel.stream.listen((message) {
       try {
         final data = jsonDecode(message);
         final Camion updatedCamion = Camion.fromJson(data);
         setState(() {
-          final index = _camionsProches.indexWhere((c) => c.id == updatedCamion.id);
-          if (index != -1) {
-            _camionsProches[index] = updatedCamion;
-          } else {
-            _camionsProches.add(updatedCamion);
+          if (updatedCamion.id != null) {
+            final index = _camionsProches.indexWhere((c) => c.id == updatedCamion.id);
+            if (index != -1) {
+              _camionsProches[index] = updatedCamion;
+            } else {
+              _camionsProches.add(updatedCamion);
+            }
           }
         });
       } catch (e) {
@@ -559,6 +561,7 @@ class _MapPickerViewState extends State<MapPickerView> {
                     backgroundColor: Colors.white,
                     foregroundColor: const Color(0xFF1E3A8A),
                     onPressed: loadingLocation ? null : _goToCurrentLocation,
+                    tooltip: loadingLocation ? 'Récupération de la position...' : 'Ma position',
                     child: loadingLocation 
                         ? const SizedBox(
                             width: 20,
@@ -569,7 +572,6 @@ class _MapPickerViewState extends State<MapPickerView> {
                             ),
                           )
                         : const Icon(Icons.my_location),
-                    tooltip: loadingLocation ? 'Récupération de la position...' : 'Ma position',
                   ),
                 ),
                 // Supprimer le FloatingActionButton.extended pour le trajet

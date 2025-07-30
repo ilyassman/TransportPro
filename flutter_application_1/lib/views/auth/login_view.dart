@@ -6,7 +6,7 @@ import '../../controllers/auth_controller.dart';
 import '../../services/profile_service.dart';
 
 class TransportLoginPage extends StatefulWidget {
-  const TransportLoginPage({Key? key}) : super(key: key);
+  const TransportLoginPage({super.key});
 
   @override
   State<TransportLoginPage> createState() => _TransportLoginPageState();
@@ -91,7 +91,7 @@ class _TransportLoginPageState extends State<TransportLoginPage>
       final realUserType = profile['userType'];
       if (realUserType != _userType) {
         setState(() {
-          _errorMessage = _getText('user_type_mismatch') + ' (' + (realUserType ?? '-') + ')';
+          _errorMessage = '${_getText('user_type_mismatch')} (' + (realUserType ?? '-') + ')';
         });
         return;
       }
@@ -99,7 +99,7 @@ class _TransportLoginPageState extends State<TransportLoginPage>
       if (_userType == 'chargeur') {
         Get.offAllNamed('/chargeur-home');
       } else if (_userType == 'transporteur') {
-        Get.offAllNamed('/transporteur-home');
+        Get.offAllNamed('/transporteur-check');
       }
     } catch (e) {
       setState(() {

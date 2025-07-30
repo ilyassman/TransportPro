@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class DocumentsView extends StatelessWidget {
-  const DocumentsView({Key? key}) : super(key: key);
+  const DocumentsView({super.key});
 
   @override
   Widget build(BuildContext context) {

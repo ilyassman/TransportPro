@@ -4,7 +4,7 @@ import '../../services/translation_service.dart';
 import '../../controllers/auth_controller.dart';
 
 class AccountActivationView extends StatefulWidget {
-  const AccountActivationView({Key? key}) : super(key: key);
+  const AccountActivationView({super.key});
 
   @override
   State<AccountActivationView> createState() => _AccountActivationViewState();

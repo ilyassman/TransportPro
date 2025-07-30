@@ -6,7 +6,7 @@ import '../../services/reservation_service.dart';
 import 'trajet_camion_view.dart';
 
 class SuivreView extends StatefulWidget {
-  const SuivreView({Key? key}) : super(key: key);
+  const SuivreView({super.key});
 
   @override
   State<SuivreView> createState() => _SuivreViewState();
@@ -227,7 +227,7 @@ class _SuivreViewState extends State<SuivreView> {
   String? _extractCodePostal(String address) {
     final regex = RegExp(r'\b\d{5}\b');
     final match = regex.firstMatch(address);
-    return match != null ? match.group(0) : null;
+    return match?.group(0);
   }
 
   String _villeDepuisAdresse(String address) {

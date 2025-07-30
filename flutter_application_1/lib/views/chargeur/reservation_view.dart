@@ -11,7 +11,7 @@ import '../../models/reservation_model.dart';
 import 'camion_search_results_page.dart';
 
 class ReservationView extends StatefulWidget {
-  const ReservationView({Key? key}) : super(key: key);
+  const ReservationView({super.key});
 
   @override
   State<ReservationView> createState() => _ReservationViewState();
@@ -196,7 +196,7 @@ class _ReservationViewState extends State<ReservationView> {
                                 double? latitude;
                                 double? longitude;
                                 try {
-                                  final url = Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=' + Uri.encodeComponent(address));
+                                  final url = Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}');
                                   final response = await http.get(url, headers: {'User-Agent': 'FlutterApp'});
                                   if (response.statusCode == 200) {
                                     final List data = json.decode(response.body);

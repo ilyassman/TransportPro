@@ -4,6 +4,7 @@ import com.example.demo.entities.Reservation;
 
 import java.security.Principal;
 import java.util.List;
+import java.util.Map;
 
 public interface ReservationService {
     Reservation createReservation(Principal principal, Reservation reservation);
@@ -16,4 +17,27 @@ public interface ReservationService {
     
     // Mettre à jour une réservation avec un camion
     Reservation updateReservationWithCamion(Long reservationId, Long camionId, Principal principal,Boolean isIgnore);
+    
+    // Récupérer les réservations disponibles pour les transporteurs
+    List<Reservation> getAvailableReservations();
+    
+    // Récupérer les réservations disponibles par statut pour les transporteurs
+    List<Reservation> getAvailableReservationsByStatus(String status);
+    
+    // Récupérer toutes les réservations par statut (avec ou sans camion assigné)
+    List<Reservation> getAllReservationsByStatus(String status);
+    
+    // Accepter une réservation (assigner le camion du transporteur)
+    Reservation acceptReservation(Long reservationId, Principal principal);
+    
+    // Méthodes pour les réservations du transporteur
+    List<Reservation> getMyReservations(Principal principal);
+    List<Reservation> getMyReservationsByStatus(Principal principal, String status);
+    Reservation updateReservationStatus(Long reservationId, String newStatus, Principal principal);
+    
+    // Méthode pour les statistiques du transporteur
+    Map<String, Object> getMyStatistics(Principal principal);
+    
+    // Méthode de debug pour vérifier les données
+    Map<String, Object> debugMyReservations(Principal principal);
 } 

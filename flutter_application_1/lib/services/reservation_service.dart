@@ -65,4 +65,19 @@ class ReservationService {
       throw Exception('Erreur lors de la récupération des réservations par statut');
     }
   }
+  
+  // Récupérer les statistiques du transporteur
+  Future<Map<String, dynamic>> getTransporteurStatistics() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    final dio = DioClient.create(token: token);
+
+    try {
+      final response = await dio.get('/api/reservations/my/statistics');
+      return Map<String, dynamic>.from(response.data);
+    } on DioException catch (e) {
+      print('Erreur lors de la récupération des statistiques: ${e.message}');
+      throw Exception('Erreur lors de la récupération des statistiques');
+    }
+  }
 } 

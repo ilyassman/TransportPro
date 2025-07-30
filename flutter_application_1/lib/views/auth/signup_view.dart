@@ -6,7 +6,7 @@ import '../../services/signup_service.dart';
 import '../../controllers/auth_controller.dart';
 
 class TransportSignupPage extends StatefulWidget {
-  const TransportSignupPage({Key? key}) : super(key: key);
+  const TransportSignupPage({super.key});
 
   @override
   State<TransportSignupPage> createState() => _TransportSignupPageState();

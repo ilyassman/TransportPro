@@ -9,7 +9,7 @@ import 'package:get/get.dart';
 import '../../services/translation_service.dart';
 
 class ChargeurHomeView extends StatefulWidget {
-  const ChargeurHomeView({Key? key}) : super(key: key);
+  const ChargeurHomeView({super.key});
 
   @override
   State<ChargeurHomeView> createState() => _ChargeurHomeViewState();

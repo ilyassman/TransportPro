@@ -1,5 +1,5 @@
 class Camion {
-  final int id;
+  final int? id;
   final String immatriculation;
   final String type;
   final double capacite;
@@ -10,7 +10,7 @@ class Camion {
   final double longitude;
 
   Camion({
-    required this.id,
+    this.id,
     required this.immatriculation,
     required this.type,
     required this.capacite,
@@ -24,14 +24,14 @@ class Camion {
   factory Camion.fromJson(Map<String, dynamic> json) {
     return Camion(
       id: json['id'],
-      immatriculation: json['immatriculation'],
-      type: json['type'],
-      capacite: (json['capacite'] as num).toDouble(),
-      marque: json['marque'],
-      modele: json['modele'],
-      disponible: json['disponible'],
-      latitude: (json['latitude'] as num).toDouble(),
-      longitude: (json['longitude'] as num).toDouble(),
+      immatriculation: json['immatriculation'] ?? '',
+      type: json['type'] ?? '',
+      capacite: (json['capacite'] as num?)?.toDouble() ?? 0.0,
+      marque: json['marque'] ?? '',
+      modele: json['modele'] ?? '',
+      disponible: json['disponible'] ?? false,
+      latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+      longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
     );
   }
 } 

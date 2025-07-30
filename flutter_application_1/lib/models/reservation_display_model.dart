@@ -46,7 +46,7 @@ class ReservationDisplay {
   // Méthode pour obtenir la couleur du statut
   Color getStatusColor() {
     switch (status.toUpperCase()) {
-      case 'CONFIRME':
+      case 'r':
         return const Color(0xFF10B981); // Vert
       case 'EN_COURS':
         return const Color(0xFFF59E0B); // Orange

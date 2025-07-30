@@ -4,7 +4,7 @@ import '../../services/translation_service.dart';
 import '../../controllers/auth_controller.dart';
 
 class ForgotPasswordPage extends StatefulWidget {
-  const ForgotPasswordPage({Key? key}) : super(key: key);
+  const ForgotPasswordPage({super.key});
 
   @override
   State<ForgotPasswordPage> createState() => _ForgotPasswordPageState();
@@ -51,10 +51,10 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     } catch (e) {
       setState(() {
         if (e.toString().contains('user_not_found')) {
-          print(e.toString()+"not found");
+          print("${e}not found");
           _errorMessage = _getText('user_not_found');
         } else {
-            print(e.toString()+"login error");
+            print("${e}login error");
           _errorMessage = _getText('login_error');
         }
       });

@@ -30,7 +30,7 @@ class ReservationDraft {
 class CamionSearchResultsPage extends StatefulWidget {
   final ReservationDraft reservationDraft;
   final List<Camion> camions;
-  const CamionSearchResultsPage({Key? key, required this.reservationDraft, required this.camions}) : super(key: key);
+  const CamionSearchResultsPage({super.key, required this.reservationDraft, required this.camions});
 
   @override
   State<CamionSearchResultsPage> createState() => _CamionSearchResultsPageState();
@@ -58,7 +58,7 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
 
   void _connectWebSocket() {
     print('Connexion au WebSocket...');
-    final wsUrl = 'ws://10.0.2.2:8082/ws/camions';
+    final wsUrl = 'ws://192.168.1.104:8082/ws/camions';
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     
     _channel!.stream.listen(
@@ -88,11 +88,13 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
             setState(() {
               _waitingForResponse = false;
               // Vérifier si le camion existe déjà dans la liste
-              bool camionExists = filteredCamions.any((c) => c.id == nouveauCamion.id);
-              if (!camionExists) {
-                // Ajouter le nouveau camion uniquement s'il n'existe pas déjà
-                filteredCamions.add(nouveauCamion);
-                _applySort(); // Appliquer le tri si nécessaire
+              if (nouveauCamion.id != null) {
+                bool camionExists = filteredCamions.any((c) => c.id == nouveauCamion.id);
+                if (!camionExists) {
+                  // Ajouter le nouveau camion uniquement s'il n'existe pas déjà
+                  filteredCamions.add(nouveauCamion);
+                  _applySort(); // Appliquer le tri si nécessaire
+                }
               }
             });
           }
@@ -210,12 +212,12 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
                   });
                   Navigator.pop(context);
                 },
-                child: Text(_getText('apply')),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF1E3A8A),
                   foregroundColor: Colors.white,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
+                child: Text(_getText('apply')),
               ),
             ],
           ),
@@ -319,7 +321,7 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
   String? extractCodePostal(String address) {
     final regex = RegExp(r'\b\d{5}\b');
     final match = regex.firstMatch(address);
-    return match != null ? match.group(0) : null;
+    return match?.group(0);
   }
 
   String villeDepuisAdresse(String address) {
@@ -599,10 +601,15 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
                                 onPressed: () async {
                                   try {
                                     // Mettre à jour la réservation existante avec l'ID du camion choisi
-                                    await ReservationService().updateReservation(
-                                      widget.reservationDraft.reservationId,
-                                      camion.id,false
-                                    );
+                                    if (camion.id != null) {
+                                      await ReservationService().updateReservation(
+                                        widget.reservationDraft.reservationId,
+                                        camion.id!,
+                                        false
+                                      );
+                                    } else {
+                                      throw Exception('ID du camion est null');
+                                    }
                                     // Afficher le message de succès
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

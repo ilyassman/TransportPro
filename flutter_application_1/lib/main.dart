@@ -15,7 +15,10 @@ import 'package:flutter_application_1/views/auth/signup_view.dart';
 import 'package:flutter_application_1/views/auth/account_activation_view.dart';
 import 'package:flutter_application_1/views/profile_view.dart';
 import 'views/chargeur/chargeur_home_view.dart';
-import 'views/transporteur/transporteur_home_view.dart';
+import 'views/transporteur/transporteur_main_view.dart';
+import 'views/transporteur/transporteur_check_view.dart';
+import 'views/transporteur/camion_form_view.dart';
+import 'controllers/transporteur_binding.dart';
 import 'services/profile_service.dart';
 
 void main() async {
@@ -32,7 +35,7 @@ void main() async {
       if (userType == 'chargeur') {
         initialRoute = '/chargeur-home';
       } else if (userType == 'transporteur') {
-        initialRoute = '/transporteur-home';
+        initialRoute = '/transporteur-check';
       }
     } catch (e) {
       initialRoute = '/login';
@@ -44,7 +47,7 @@ void main() async {
 class MyApp extends StatefulWidget {
   final String initialRoute;
   final String token;
-  const MyApp({Key? key, required this.initialRoute, required this.token}) : super(key: key);
+  const MyApp({super.key, required this.initialRoute, required this.token});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -101,9 +104,18 @@ class _MyAppState extends State<MyApp> {
           name: '/chargeur-home',
           page: () => const ChargeurHomeView(),
         ),
+
         GetPage(
-          name: '/transporteur-home',
-          page: () => const TransporteurHomeView(),
+          name: '/transporteur-check',
+          page: () => const TransporteurCheckView(),
+        ),
+        GetPage(
+          name: '/transporteur-main',
+          page: () => const TransporteurMainView(),
+        ),
+        GetPage(
+          name: '/transporteur-camion-form',
+          page: () => const CamionFormView(),
         ),
 
       ],

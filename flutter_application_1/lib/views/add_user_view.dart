@@ -9,6 +9,8 @@ class AddUserView extends StatelessWidget {
   final userController = Get.find<UserController>();
   final _passwordController = TextEditingController();
 
+  AddUserView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(

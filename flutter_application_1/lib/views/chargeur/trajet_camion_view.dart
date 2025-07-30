@@ -11,7 +11,7 @@ import '../../models/camion_model.dart';
 
 class TrajetCamionView extends StatefulWidget {
   final ReservationDisplay reservation;
-  const TrajetCamionView({Key? key, required this.reservation}) : super(key: key);
+  const TrajetCamionView({super.key, required this.reservation});
 
   @override
   State<TrajetCamionView> createState() => _TrajetCamionViewState();
@@ -57,19 +57,19 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
   Future<void> _fetchInitialCamionPosition() async {
     if (camionId == null) return;
     final camion = await CamionService().getCamionById(camionId!);
-    if (camion != null && camion.latitude != null && camion.longitude != null) {
+    if (camion != null) {
       print('Position initiale du camion récupérée: ${camion.latitude}, ${camion.longitude}');
       setState(() {
         camionLat = camion.latitude;
         camionLng = camion.longitude;
-        departCoord = LatLng(camion.latitude!, camion.longitude!);
+        departCoord = LatLng(camion.latitude, camion.longitude);
       });
     }
   }
 
   void _connectWebSocket() {
     // Remplacez l'URL par celle de votre backend si besoin
-    final wsUrl = 'ws://10.0.2.2:8082/ws/camions'; // Utilise 10.0.2.2 pour l'émulateur Android
+    final wsUrl = 'ws://192.168.1.104:8082/ws/camions'; // Utilise localhost pour le développement
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     _channel!.stream.listen((message) {
       try {
@@ -138,7 +138,7 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
   }
 
   Future<LatLng?> _geocode(String address) async {
-    final url = Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=' + Uri.encodeComponent(address));
+    final url = Uri.parse('https://nominatim.openstreetmap.org/search?format=json&q=${Uri.encodeComponent(address)}');
     final response = await http.get(url, headers: {'User-Agent': 'FlutterApp'});
     if (response.statusCode == 200) {
       final List data = json.decode(response.body);
@@ -176,7 +176,7 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
     if (camionId == null) return;
     try {
       final response = await http.post(
-        Uri.parse('http://10.0.2.2:8082/api/camions/$camionId/simulate-movement'),
+        Uri.parse('http://192.168.1.104:8082/api/camions/$camionId/simulate-movement'),
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -278,8 +278,8 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
                 mapController.move(departCoord!, 16); // Zoom fort sur le camion
               },
               backgroundColor: const Color(0xFF1E3A8A),
-              child: const Icon(Icons.center_focus_strong, color: Colors.white),
               tooltip: 'Centrer sur le camion',
+              child: const Icon(Icons.center_focus_strong, color: Colors.white),
             )
           : null,
     );

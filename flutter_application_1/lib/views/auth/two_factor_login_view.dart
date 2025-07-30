@@ -6,7 +6,7 @@ import '../../controllers/two_factor_controller.dart';
 import '../../services/translation_service.dart';
 
 class TwoFactorLoginView extends StatefulWidget {
-  const TwoFactorLoginView({Key? key}) : super(key: key);
+  const TwoFactorLoginView({super.key});
 
   @override
   State<TwoFactorLoginView> createState() => _TwoFactorLoginViewState();

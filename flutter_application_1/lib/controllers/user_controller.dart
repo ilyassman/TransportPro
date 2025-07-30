@@ -1,4 +1,3 @@
-import 'dart:convert';
 
 import 'package:get/get.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
@@ -11,7 +10,7 @@ class UserController extends GetxController {
   var isLoading = true.obs;
   var userList = <UserModel>[].obs;
   var isConnected = false.obs;
-  final String socketUrl = 'ws://10.0.2.2:8082/ws/users'; 
+      final String socketUrl = 'ws://192.168.1.104:8082/ws/users'; 
 
   UserController({required this.userService});
 

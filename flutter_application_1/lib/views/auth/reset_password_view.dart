@@ -6,7 +6,7 @@ import '../../models/user_model.dart';
 
 class ResetPasswordPage extends StatefulWidget {
   final String username;
-  const ResetPasswordPage({Key? key, required this.username}) : super(key: key);
+  const ResetPasswordPage({super.key, required this.username});
 
   @override
   State<ResetPasswordPage> createState() => _ResetPasswordPageState();
