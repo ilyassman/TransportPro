@@ -75,7 +75,7 @@ class AvailableReservation {
         return '⏳';
       case 'EN_COURS':
         return '🚚';
-      case 'r':
+      case 'TERMINEE':
         return '✅';
       default:
         return '📋';

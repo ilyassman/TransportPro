@@ -90,6 +90,43 @@ class TwoFactorService {
     }
   }
 
+  /// Désactiver la 2FA avec vérification du code
+  Future<Map<String, dynamic>> disableTwoFactorWithVerification(String username, int code) async {
+    try {
+      print('=== DÉBUT SERVICE DÉSACTIVATION 2FA ===');
+      print('Username: $username, Code: $code');
+      
+      final response = await _dio.post(
+        '/api/2fa/disable-with-verification',
+        data: {
+          'username': username,
+          'code': code,
+        },
+      );
+      
+      print('Réponse du serveur: ${response.data}');
+      return response.data;
+    } on DioException catch (e) {
+      print('=== ERREUR DIO SERVICE DÉSACTIVATION 2FA ===');
+      print('Erreur Dio: ${e.message}');
+      print('Status code: ${e.response?.statusCode}');
+      print('Response data: ${e.response?.data}');
+      
+      if (e.response?.statusCode == 400) {
+        final errorData = e.response?.data;
+        if (errorData != null && errorData['message'] != null) {
+          throw Exception(errorData['message']);
+        }
+        throw Exception('Code invalide');
+      }
+      throw Exception('Erreur lors de la désactivation 2FA: ${e.message}');
+    } catch (e) {
+      print('=== ERREUR GÉNÉRALE SERVICE DÉSACTIVATION 2FA ===');
+      print('Erreur: $e');
+      throw Exception('Erreur lors de la désactivation 2FA: $e');
+    }
+  }
+
   /// Désactiver la 2FA
   Future<Map<String, dynamic>> disableTwoFactor(String username) async {
     try {

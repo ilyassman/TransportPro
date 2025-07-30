@@ -80,4 +80,19 @@ class ReservationService {
       throw Exception('Erreur lors de la récupération des statistiques');
     }
   }
+
+  // Récupérer les récapitulatifs de réservations
+  Future<List<Map<String, dynamic>>> getReservationRecapitulatif() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    final dio = DioClient.create(token: token);
+
+    try {
+      final response = await dio.get('/api/reservations/recapitulatif');
+      return List<Map<String, dynamic>>.from(response.data);
+    } on DioException catch (e) {
+      print('Erreur lors de la récupération des récapitulatifs: ${e.message}');
+      throw Exception('Erreur lors de la récupération des récapitulatifs');
+    }
+  }
 } 

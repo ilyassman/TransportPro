@@ -11,6 +11,8 @@ import com.example.demo.sockets.SocketCamionUpdatesHandler;
 import java.security.Principal;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+
 
 @RestController
 @RequestMapping("/api/reservations")
@@ -39,6 +41,12 @@ public class ReservationController {
             @PathVariable String status) {
         List<Reservation> reservations = reservationService.getUserReservationsByStatus(principal, status);
         return ResponseEntity.ok(reservations);
+    }
+
+    @GetMapping("/recapitulatif")
+    public ResponseEntity<List<Map<String, Object>>> getReservationRecapitulatif(Principal principal) {
+        List<Map<String, Object>> recapitulatifs = reservationService.getReservationRecapitulatif(principal);
+        return ResponseEntity.ok(recapitulatifs);
     }
 
     @PutMapping("/{reservationId}/camion/{camionId}/{isIgnore}")

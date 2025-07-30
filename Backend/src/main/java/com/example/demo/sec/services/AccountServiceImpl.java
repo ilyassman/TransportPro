@@ -93,6 +93,11 @@ public class AccountServiceImpl implements AccountService {
         return userAppRepository.findByEmail(email);    }
 
     @Override
+    public AppUser loadUserById(Long id) {
+        return userAppRepository.findById(id).orElse(null);
+    }
+
+    @Override
     public AppUser updatePassword(String username, String newPassword) {
         AppUser appuser = userAppRepository.findByUsername(username);
         appuser.setPassword(passwordEncoder.encode(newPassword));

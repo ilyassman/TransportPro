@@ -175,27 +175,99 @@ class TwoFactorController extends GetxController {
     }
   }
 
-  /// Désactiver la 2FA
-  Future<bool> disableTwoFactor(String username) async {
+  /// Désactiver la 2FA avec vérification du code
+  Future<void> disableTwoFactorWithVerification() async {
+    try {
+      print('=== DÉBUT DÉSACTIVATION 2FA AVEC VÉRIFICATION ===');
+      isVerifying.value = true;
+      errorMessage.value = '';
+      
+      final args = Get.arguments as Map<String, dynamic>?;
+      final username = args?['username'];
+      
+      print('Username depuis args: $username');
+      print('Code depuis controller: ${codeController.text}');
+      
+      if (username == null) {
+        print('Erreur: Username null');
+        errorMessage.value = 'Nom d\'utilisateur manquant';
+        return;
+      }
+      
+      if (codeController.text.isEmpty) {
+        print('Erreur: Code vide');
+        errorMessage.value = 'Code requis';
+        return;
+      }
+      
+      final code = int.parse(codeController.text);
+      print('Code parsé: $code');
+      
+      final response = await twoFactorService.disableTwoFactorWithVerification(username, code);
+      print('Réponse du serveur: $response');
+      
+      if (response['success'] == true) {
+        print('Désactivation réussie');
+        
+        // Retourner au profil
+        Get.back(); // Fermer la vue de désactivation
+        
+        // Afficher le message de succès
+        Get.snackbar(
+          'Succès',
+          '2FA désactivée avec succès',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+          duration: const Duration(seconds: 3),
+          snackPosition: SnackPosition.TOP,
+          margin: const EdgeInsets.all(16),
+          borderRadius: 8,
+          icon: const Icon(
+            Icons.check_circle,
+            color: Colors.white,
+          ),
+        );
+        
+      } else {
+        print('Erreur de désactivation: ${response['message']}');
+        errorMessage.value = response['message'] ?? 'Erreur lors de la désactivation';
+      }
+    } catch (e) {
+      print('=== ERREUR DÉSACTIVATION 2FA ===');
+      print('Erreur: $e');
+      errorMessage.value = e.toString();
+    } finally {
+      isVerifying.value = false;
+      print('=== FIN DÉSACTIVATION 2FA AVEC VÉRIFICATION ===');
+    }
+  }
+
+  /// Désactiver la 2FA sans vérification (pour les cas spéciaux)
+  Future<void> disableTwoFactor() async {
     try {
       isLoading.value = true;
       errorMessage.value = '';
       
+      final args = Get.arguments as Map<String, dynamic>?;
+      final username = args?['username'];
+      
+      if (username == null) return;
+      
       final response = await twoFactorService.disableTwoFactor(username);
       
       if (response['success'] == true) {
-        isTwoFactorEnabled.value = false;
-        isTwoFactorVerified.value = false;
-        qrCodeUrl.value = '';
-        secretKey.value = '';
-        return true;
+        Get.snackbar(
+          'Succès',
+          '2FA désactivée avec succès',
+          backgroundColor: const Color(0xFF10B981),
+          colorText: Colors.white,
+        );
+        Get.back();
       } else {
         errorMessage.value = response['message'] ?? 'Erreur lors de la désactivation';
-        return false;
       }
     } catch (e) {
       errorMessage.value = e.toString();
-      return false;
     } finally {
       isLoading.value = false;
     }

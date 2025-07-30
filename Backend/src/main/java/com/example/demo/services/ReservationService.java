@@ -18,6 +18,7 @@ public interface ReservationService {
     // Mettre à jour une réservation avec un camion
     Reservation updateReservationWithCamion(Long reservationId, Long camionId, Principal principal,Boolean isIgnore);
     
+
     // Récupérer les réservations disponibles pour les transporteurs
     List<Reservation> getAvailableReservations();
     
@@ -40,4 +41,10 @@ public interface ReservationService {
     
     // Méthode de debug pour vérifier les données
     Map<String, Object> debugMyReservations(Principal principal);
+    // Récupérer les récapitulatifs de réservations
+    List<Map<String, Object>> getReservationRecapitulatif(Principal principal);
+    
+    // Récupérer une réservation par ID
+    Reservation getReservationById(Long reservationId);
+
 } 

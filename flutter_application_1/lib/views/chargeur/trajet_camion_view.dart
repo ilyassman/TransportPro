@@ -8,6 +8,9 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import '../../services/camion_service.dart';
 import '../../models/camion_model.dart';
+import 'package:url_launcher/url_launcher.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'chat_view.dart';
 
 class TrajetCamionView extends StatefulWidget {
   final ReservationDisplay reservation;
@@ -204,14 +207,153 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
     }
   }
 
+  // Méthode pour appeler le transporteur
+  Future<void> _callTransporteur() async {
+    if (widget.reservation.transporteurPhone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Numéro de téléphone du transporteur non disponible'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+      return;
+    }
+
+    final phoneNumber = widget.reservation.transporteurPhone;
+    
+    // Afficher un dialogue de confirmation
+    bool? shouldCall = await showDialog<bool>(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Appeler le transporteur'),
+          content: Text('Voulez-vous appeler ${widget.reservation.transporteurNom} au ${phoneNumber} ?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF1E3A8A),
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Appeler'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (shouldCall != true) return;
+    
+    try {
+      // Demander les permissions téléphoniques
+      PermissionStatus phoneStatus = await Permission.phone.request();
+      if (phoneStatus.isDenied || phoneStatus.isPermanentlyDenied) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Permission d\'appel téléphonique requise'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        return;
+      }
+      
+      // Nettoyer le numéro de téléphone
+      String cleanNumber = phoneNumber.replaceAll(RegExp(r'[^\d+]'), '');
+      
+      // Ajouter le préfixe si nécessaire
+      if (!cleanNumber.startsWith('+')) {
+        if (cleanNumber.startsWith('0')) {
+          cleanNumber = '+212' + cleanNumber.substring(1);
+        } else if (cleanNumber.startsWith('212')) {
+          cleanNumber = '+' + cleanNumber;
+        } else {
+          cleanNumber = '+212' + cleanNumber;
+        }
+      }
+      
+      // Essayer plusieurs formats d'URL
+      List<String> urlFormats = [
+        'tel:$cleanNumber',
+        'tel:${cleanNumber.replaceAll('+', '')}',
+        'tel:${cleanNumber.replaceAll('+212', '0')}',
+      ];
+      
+      bool launched = false;
+      for (String urlFormat in urlFormats) {
+        try {
+          final url = Uri.parse(urlFormat);
+          if (await canLaunchUrl(url)) {
+            await launchUrl(url, mode: LaunchMode.externalApplication);
+            launched = true;
+            break;
+          }
+        } catch (e) {
+          print('Erreur avec le format $urlFormat: $e');
+          continue;
+        }
+      }
+      
+      if (!launched) {
+        // Dernière tentative avec un format simple
+        try {
+          final simpleUrl = Uri.parse('tel:${cleanNumber.replaceAll(RegExp(r'[^\d]'), '')}');
+          if (await canLaunchUrl(simpleUrl)) {
+            await launchUrl(simpleUrl, mode: LaunchMode.externalApplication);
+          } else {
+            throw Exception('Aucun format d\'URL valide trouvé');
+          }
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Impossible d\'ouvrir l\'application téléphone pour: $cleanNumber'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur lors de l\'appel: $e'),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Trajet du camion'),
+        title: const Text('Trajet du Camion'),
         backgroundColor: const Color(0xFF1E3A8A),
         foregroundColor: Colors.white,
         actions: [
+          // Bouton de chat
+          IconButton(
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatView(reservation: widget.reservation),
+                ),
+              );
+            },
+            icon: const Icon(Icons.chat),
+            tooltip: 'Chat avec le transporteur',
+          ),
+          // Bouton d'appel
+          if (widget.reservation.transporteurPhone.isNotEmpty)
+            IconButton(
+              onPressed: _callTransporteur,
+              icon: const Icon(Icons.phone),
+              tooltip: 'Appeler le transporteur',
+            ),
+          // Bouton de simulation (existant)
           if (camionId != null)
             IconButton(
               icon: const Icon(Icons.play_arrow),

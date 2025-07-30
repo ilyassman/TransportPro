@@ -11,6 +11,7 @@ import java.util.List;
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
     // Récupérer toutes les réservations d'un chargeur
     List<Reservation> findByChargeurOrderByDateReservationDesc(AppUser chargeur);
+    List<Reservation> findByChargeur(AppUser chargeur);
     
     // Récupérer les réservations par statut pour un chargeur
     List<Reservation> findByChargeurAndStatutOrderByDateReservationDesc(AppUser chargeur, String statut);

@@ -15,6 +15,7 @@ public interface AccountService {
     void addRoleToUser(String username, String role);
     AppUser loadUserByUsername(String username);
     AppUser loadUserByEmail(String email);
+    AppUser loadUserById(Long id);
     AppUser updatePassword(String username, String newPassword);
     List<AppUser> getUsers();
     public void updateUser(Long id,AppUser user);
