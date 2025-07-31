@@ -50,7 +50,7 @@ public class MessageServiceImpl implements MessageService {
             notification.put("dateEnvoi", savedMessage.getDateEnvoi().toString());
             
             String jsonNotification = mapper.writeValueAsString(notification);
-            chatWebSocketHandler.notifyNewMessage(jsonNotification, destinataire.getId());
+            chatWebSocketHandler.notifyNewMessage(jsonNotification, destinataire.getId(), reservation.getId());
         } catch (Exception e) {
             e.printStackTrace();
         }

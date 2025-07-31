@@ -26,8 +26,8 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
   @override
   void initState() {
     super.initState();
-    _statusTabController = TabController(length: 3, vsync: this); // Changé de 4 à 3
-    _selectedStatus = _getStatusOptions().first; // Sera maintenant 'EN_COURS'
+    _statusTabController = TabController(length: 3, vsync: this);
+    _selectedStatus = _getStatusOptions().first; // 'EN_COURS'
     
     // Ajouter un listener pour gérer les changements d'onglets
     _statusTabController.addListener(() {
@@ -36,11 +36,15 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
         setState(() {
           _selectedStatus = newStatus;
         });
+        // Recharger automatiquement les réservations
         _loadMyReservations();
       }
     });
     
-    _loadMyReservations();
+    // Charger automatiquement les réservations au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMyReservations();
+    });
   }
 
   @override
@@ -49,8 +53,25 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
     super.dispose();
   }
 
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger automatiquement quand la vue devient visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadMyReservations();
+      }
+    });
+  }
+
   Future<void> _loadMyReservations() async {
-    await controller.loadMyReservationsByStatus(_selectedStatus);
+    print('🔄 Chargement automatique des réservations avec le statut: $_selectedStatus');
+    try {
+      await controller.loadMyReservationsByStatus(_selectedStatus);
+      print('✅ Réservations chargées avec succès');
+    } catch (e) {
+      print('❌ Erreur lors du chargement: $e');
+    }
   }
 
   Color _getStatusColor(String status) {
@@ -103,7 +124,8 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
   }
 
   List<AvailableReservation> _getFilteredReservations() {
-    return controller.reservations.where((r) => r.statut.toUpperCase() == _selectedStatus).toList();
+    // Retourner directement toutes les réservations car elles sont déjà filtrées par statut côté serveur
+    return controller.reservations.toList();
   }
 
   Future<void> _changeReservationStatus(AvailableReservation reservation, String newStatus) async {
@@ -147,7 +169,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Titre avec icône
+              // Titre avec icône et bouton de rafraîchissement
               Row(
                 children: [
                   Icon(
@@ -156,15 +178,36 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
                     size: 20,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    'Filtrer par statut',
-                    style: const TextStyle(
-                      color: Color(0xFF1E293B),
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      fontFamily: 'Montserrat',
+                  Expanded(
+                    child: Text(
+                      'Filtrer par statut',
+                      style: const TextStyle(
+                        color: Color(0xFF1E293B),
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                        fontFamily: 'Montserrat',
+                      ),
                     ),
                   ),
+                                     // Bouton de rafraîchissement (optionnel)
+                   IconButton(
+                     onPressed: () {
+                       _loadMyReservations();
+                       ScaffoldMessenger.of(context).showSnackBar(
+                         const SnackBar(
+                           content: Text('🔄 Actualisation manuelle...'),
+                           backgroundColor: Color(0xFF1E3A8A),
+                           duration: Duration(seconds: 1),
+                         ),
+                       );
+                     },
+                     icon: const Icon(
+                       Icons.refresh,
+                       color: Color(0xFF1E3A8A),
+                       size: 20,
+                     ),
+                     tooltip: 'Actualiser manuellement',
+                   ),
                 ],
               ),
               const SizedBox(height: 16),

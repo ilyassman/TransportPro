@@ -58,20 +58,20 @@ class _ChatViewState extends State<ChatView> {
         currentUserId = profile['id'];
         currentUsername = profile['username'];
         
-        // Pour un transporteur, le destinataire est toujours le chargeur
+        // Pour un transporteur, le destinataire est le chargeur
         // L'ID du chargeur est stocké dans transporteurId (nommage confus mais c'est l'ID du chargeur)
         destinataireId = widget.reservation.transporteurId; // C'est en fait l'ID du chargeur
         destinataireNom = widget.reservation.transporteurNom; // C'est en fait le nom du chargeur
       });
       
       // Logs pour déboguer
-      print('=== DEBUG CHAT ===');
+      print('=== DEBUG CHAT TRANSPORTEUR ===');
       print('Current User ID: $currentUserId');
       print('Current Username: $currentUsername');
       print('Destinataire ID: $destinataireId');
       print('Destinataire Nom: $destinataireNom');
       print('Reservation ID: ${widget.reservation.id}');
-      print('==================');
+      print('===============================');
       
     } catch (e) {
       print('Erreur lors du chargement du profil: $e');
@@ -112,60 +112,74 @@ class _ChatViewState extends State<ChatView> {
     }
   }
 
-  void _connectWebSocket() {
-    try {
-      final wsUrl = 'ws://10.0.2.2:8082/ws/chat/${widget.reservation.id}';
-      _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
-      
-      _channel!.stream.listen(
-        (message) {
-          print('Message WebSocket reçu: $message');
-          try {
-            final data = jsonDecode(message);
-            if (data['type'] == 'NEW_MESSAGE') {
-              final newMessage = MessageModel.fromJson(data['message']);
-              setState(() {
-                messages.add(newMessage);
-              });
-              
-              // Scroll vers le bas
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (_scrollController.hasClients) {
-                  _scrollController.animateTo(
-                    _scrollController.position.maxScrollExtent,
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeOut,
-                  );
-                }
-              });
-            }
-          } catch (e) {
-            print('Erreur lors du traitement du message WebSocket: $e');
-          }
-        },
-        onError: (error) {
-          print('Erreur WebSocket: $error');
-          setState(() {
-            isConnected = false;
-          });
-        },
-        onDone: () {
-          print('WebSocket fermé');
-          setState(() {
-            isConnected = false;
-          });
-        },
-      );
-      
-      setState(() {
-        isConnected = true;
-      });
-    } catch (e) {
-      print('Erreur lors de la connexion WebSocket: $e');
-      setState(() {
-        isConnected = false;
-      });
+  void _connectWebSocket() async {
+    // Attendre que l'utilisateur soit chargé
+    if (currentUserId == null) {
+      await Future.delayed(const Duration(milliseconds: 500));
+      if (currentUserId == null) {
+        print('Impossible de connecter au WebSocket: utilisateur non chargé');
+        return;
+      }
     }
+    
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    
+    final wsUrl = 'ws://10.0.2.2:8082/ws/chat?userId=$currentUserId&token=$token';
+    _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
+    
+    _channel!.stream.listen(
+      (message) {
+        try {
+          final data = jsonDecode(message);
+          
+          if (data['type'] == 'NEW_MESSAGE') {
+            final newMessage = MessageModel(
+              id: data['messageId'],
+              contenu: data['contenu'],
+              dateEnvoi: DateTime.parse(data['dateEnvoi']),
+              expediteurId: data['expediteurId'],
+              expediteurNom: data['expediteurNom'],
+              destinataireId: currentUserId!,
+              reservationId: widget.reservation.id,
+              lu: false,
+            );
+            
+            setState(() {
+              messages.add(newMessage);
+            });
+            
+            // Scroll vers le bas
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (_scrollController.hasClients) {
+                _scrollController.animateTo(
+                  _scrollController.position.maxScrollExtent,
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeOut,
+                );
+              }
+            });
+          }
+        } catch (e) {
+          print('Erreur lors du traitement du message WebSocket: $e');
+        }
+      },
+      onDone: () {
+        setState(() {
+          isConnected = false;
+        });
+      },
+      onError: (error) {
+        setState(() {
+          isConnected = false;
+        });
+        print('Erreur WebSocket: $error');
+      },
+    );
+    
+    setState(() {
+      isConnected = true;
+    });
   }
 
   Future<void> _sendMessage() async {

@@ -38,7 +38,13 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
   
   // Pour la mise à jour automatique de position
   Timer? _positionUpdateTimer;
+  Timer? _animationTimer;
   bool _isAutoUpdating = false;
+  
+  // Pour l'animation fluide
+  LatLng? _currentPosition;
+  LatLng? _targetPosition;
+  double _animationProgress = 0.0;
 
   @override
   void initState() {
@@ -60,6 +66,7 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
   void dispose() {
     _channel?.sink.close();
     _positionUpdateTimer?.cancel();
+    _animationTimer?.cancel();
     super.dispose();
   }
 
@@ -80,7 +87,10 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
           camionLat = camion.latitude;
           camionLng = camion.longitude;
           departCoord = LatLng(camion.latitude, camion.longitude);
+          _currentPosition = LatLng(camion.latitude, camion.longitude);
+          _targetPosition = LatLng(camion.latitude, camion.longitude); // Initialiser aussi la position cible
         });
+        print('Positions initialisées: _currentPosition = $_currentPosition, _targetPosition = $_targetPosition');
       } else {
         setState(() {
           error = 'Aucun camion trouvé pour ce transporteur';
@@ -96,7 +106,7 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
   }
 
   void _connectWebSocket() {
-    final wsUrl = 'ws://10.0.2.2:8082/ws/camions';
+    final wsUrl = 'ws://192.168.100.19:8082/ws/camions';
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     _channel!.stream.listen((message) {
       try {
@@ -225,7 +235,22 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
       print('Position récupérée: $position');
       
       if (position != null && camionId != null) {
-        final url = 'http://10.0.2.2:8082/api/camions/$camionId/position';
+        // Mettre à jour l'animation fluide
+        setState(() {
+          // Si c'est la première position, initialiser _currentPosition
+          if (_currentPosition == null) {
+            _currentPosition = position;
+          } else {
+            // Sinon, déplacer la position actuelle vers la cible
+            _currentPosition = _targetPosition ?? _currentPosition;
+          }
+          _targetPosition = position;
+          _animationProgress = 0.0;
+        });
+        
+        print('Animation: _currentPosition = $_currentPosition, _targetPosition = $_targetPosition');
+        
+        final url = 'http://192.168.100.19:8082/api/camions/$camionId/position';
         final body = json.encode({
           'latitude': position.latitude,
           'longitude': position.longitude,
@@ -331,8 +356,8 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
     // Mettre à jour immédiatement
     _updateMyPosition();
     
-    // Puis programmer les mises à jour toutes les 6 secondes
-    _positionUpdateTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
+    // Puis programmer les mises à jour toutes les 2 secondes pour plus de fluidité
+    _positionUpdateTimer = Timer.periodic(const Duration(seconds: 2), (timer) {
       if (mounted && _isAutoUpdating) {
         _updateMyPosition();
       } else {
@@ -340,13 +365,49 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
       }
     });
     
+    // Démarrer l'animation fluide
+    _startSmoothAnimation();
+    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
-        content: Text('🔄 Suivi automatique activé - Position mise à jour toutes les 6 secondes'),
+        content: Text('🔄 Suivi automatique activé - Animation fluide activée'),
         backgroundColor: Colors.green,
         duration: Duration(seconds: 2),
       ),
     );
+  }
+
+  // Démarrer l'animation fluide
+  void _startSmoothAnimation() {
+    _animationTimer?.cancel();
+    _animationTimer = Timer.periodic(const Duration(milliseconds: 50), (timer) {
+      if (mounted && _isAutoUpdating && _currentPosition != null && _targetPosition != null) {
+        setState(() {
+          _animationProgress += 0.05; // Progression plus lente pour une animation plus fluide
+          if (_animationProgress >= 1.0) {
+            _animationProgress = 0.0;
+            _currentPosition = _targetPosition;
+          }
+        });
+        print('Animation progress: $_animationProgress');
+      } else {
+        timer.cancel();
+      }
+    });
+  }
+
+  // Obtenir la position animée
+  LatLng? _getAnimatedPosition() {
+    if (_currentPosition == null) return departCoord;
+    if (_targetPosition == null || _animationProgress == 0.0) return _currentPosition;
+    
+    // Interpolation linéaire pour une animation fluide
+    final lat = _currentPosition!.latitude + (_targetPosition!.latitude - _currentPosition!.latitude) * _animationProgress;
+    final lng = _currentPosition!.longitude + (_targetPosition!.longitude - _currentPosition!.longitude) * _animationProgress;
+    
+    final animatedPosition = LatLng(lat, lng);
+    print('Animated position: $animatedPosition (progress: $_animationProgress)');
+    return animatedPosition;
   }
 
   // Arrêter la mise à jour automatique de position
@@ -359,6 +420,8 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
     
     _positionUpdateTimer?.cancel();
     _positionUpdateTimer = null;
+    _animationTimer?.cancel();
+    _animationTimer = null;
     
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
@@ -471,14 +534,14 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
                           children: [
                             const Icon(Icons.sync, color: Colors.white, size: 16),
                             const SizedBox(width: 8),
-                            const Text(
-                              '🔄 Suivi automatique actif - Position mise à jour toutes les 6 secondes',
-                              style: TextStyle(
-                                color: Colors.white,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
+                                                         const Text(
+                               '🔄 Suivi automatique actif - Animation fluide',
+                               style: TextStyle(
+                                 color: Colors.white,
+                                 fontSize: 12,
+                                 fontWeight: FontWeight.w500,
+                               ),
+                             ),
                           ],
                         ),
                       ),
@@ -507,28 +570,55 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
                                  ),
                                ],
                              ),
-                           if (departCoord != null)
-                             MarkerLayer(
-                               markers: [
-                                 Marker(
-                                   point: departCoord!,
-                                   width: 50,
-                                   height: 50,
-                                   child: Container(
-                                     decoration: BoxDecoration(
-                                       color: const Color(0xFF1E3A8A),
-                                       shape: BoxShape.circle,
-                                       border: Border.all(color: Colors.white, width: 3),
-                                     ),
-                                     child: const Icon(
-                                       Icons.local_shipping,
-                                       color: Colors.white,
-                                       size: 24,
-                                     ),
-                                   ),
-                                 ),
-                               ],
-                             ),
+                                                       if (_getAnimatedPosition() != null)
+                              MarkerLayer(
+                                markers: [
+                                  // Marqueur animé du camion
+                                  Marker(
+                                    point: _getAnimatedPosition()!,
+                                    width: 50,
+                                    height: 50,
+                                    child: Container(
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFF1E3A8A),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 3),
+                                        boxShadow: [
+                                          BoxShadow(
+                                            color: const Color(0xFF1E3A8A).withOpacity(0.3),
+                                            blurRadius: 8,
+                                            spreadRadius: 2,
+                                          ),
+                                        ],
+                                      ),
+                                      child: const Icon(
+                                        Icons.local_shipping,
+                                        color: Colors.white,
+                                        size: 24,
+                                      ),
+                                    ),
+                                  ),
+                                  // Marqueur de debug pour voir la position cible (optionnel)
+                                  if (_targetPosition != null && _currentPosition != null && _targetPosition != _currentPosition)
+                                    Marker(
+                                      point: _targetPosition!,
+                                      width: 30,
+                                      height: 30,
+                                      child: Container(
+                                        decoration: BoxDecoration(
+                                          color: Colors.red.withOpacity(0.5),
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: Colors.red, width: 2),
+                                        ),
+                                        child: const Icon(
+                                          Icons.circle,
+                                          color: Colors.red,
+                                          size: 15,
+                                        ),
+                                      ),
+                                    ),
+                                ],
+                              ),
                            if (arriveeCoord != null)
                              MarkerLayer(
                                markers: [
@@ -556,16 +646,16 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
                      ),
                    ],
                  ),
-      floatingActionButton: (departCoord != null)
-          ? FloatingActionButton(
-              onPressed: () {
-                mapController.move(departCoord!, 16);
-              },
-              backgroundColor: const Color(0xFF1E3A8A),
-              tooltip: 'Centrer sur ma position',
-              child: const Icon(Icons.center_focus_strong, color: Colors.white),
-            )
-          : null,
+             floatingActionButton: (_getAnimatedPosition() != null)
+           ? FloatingActionButton(
+               onPressed: () {
+                 mapController.move(_getAnimatedPosition()!, 16);
+               },
+               backgroundColor: const Color(0xFF1E3A8A),
+               tooltip: 'Centrer sur ma position',
+               child: const Icon(Icons.center_focus_strong, color: Colors.white),
+             )
+           : null,
     );
   }
 } 

@@ -18,14 +18,22 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 
     private static final List<WebSocketSession> sessions = new CopyOnWriteArrayList<>();
     private static final Map<Long, WebSocketSession> userSessions = new HashMap<>();
+    private static final Map<Long, List<WebSocketSession>> reservationSessions = new HashMap<>();
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
         sessions.add(session);
-        // Extraire l'ID utilisateur de l'URL ou des paramètres
+        
+        // Extraire l'ID utilisateur et reservationId de l'URL
         String userId = extractUserIdFromSession(session);
+        Long reservationId = extractReservationIdFromSession(session);
+        
         if (userId != null) {
             userSessions.put(Long.parseLong(userId), session);
+        }
+        
+        if (reservationId != null) {
+            reservationSessions.computeIfAbsent(reservationId, k -> new CopyOnWriteArrayList<>()).add(session);
         }
     }
 
@@ -34,6 +42,11 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         sessions.remove(session);
         // Supprimer la session de l'utilisateur
         userSessions.values().remove(session);
+        
+        // Supprimer la session des réservations
+        for (List<WebSocketSession> reservationSessionList : reservationSessions.values()) {
+            reservationSessionList.remove(session);
+        }
     }
 
     @Override
@@ -91,7 +104,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         notifyTypingStatus(reservationId, userId, isTyping);
     }
 
-    public void notifyNewMessage(String messageJson, Long destinataireId) {
+    public void notifyNewMessage(String messageJson, Long destinataireId, Long reservationId) {
+        // Notifier par ID utilisateur
         WebSocketSession destinataireSession = userSessions.get(destinataireId);
         if (destinataireSession != null && destinataireSession.isOpen()) {
             try {
@@ -100,23 +114,40 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
                 e.printStackTrace();
             }
         }
+        
+        // Notifier par reservationId (pour les sessions connectées à une réservation spécifique)
+        List<WebSocketSession> reservationSessionList = reservationSessions.get(reservationId);
+        if (reservationSessionList != null) {
+            for (WebSocketSession session : reservationSessionList) {
+                if (session.isOpen() && session != destinataireSession) {
+                    try {
+                        session.sendMessage(new TextMessage(messageJson));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }
     }
 
     public void notifyTypingStatus(Long reservationId, Long userId, boolean isTyping) {
         // Notifier tous les utilisateurs connectés au chat de cette réservation
-        for (WebSocketSession session : sessions) {
-            if (session.isOpen()) {
-                try {
-                    Map<String, Object> notification = new HashMap<>();
-                    notification.put("type", "TYPING_STATUS");
-                    notification.put("reservationId", reservationId);
-                    notification.put("userId", userId);
-                    notification.put("isTyping", isTyping);
-                    
-                    ObjectMapper mapper = new ObjectMapper();
-                    session.sendMessage(new TextMessage(mapper.writeValueAsString(notification)));
-                } catch (IOException e) {
-                    e.printStackTrace();
+        List<WebSocketSession> reservationSessionList = reservationSessions.get(reservationId);
+        if (reservationSessionList != null) {
+            for (WebSocketSession session : reservationSessionList) {
+                if (session.isOpen()) {
+                    try {
+                        Map<String, Object> notification = new HashMap<>();
+                        notification.put("type", "TYPING_STATUS");
+                        notification.put("reservationId", reservationId);
+                        notification.put("userId", userId);
+                        notification.put("isTyping", isTyping);
+                        
+                        ObjectMapper mapper = new ObjectMapper();
+                        session.sendMessage(new TextMessage(mapper.writeValueAsString(notification)));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                 }
             }
         }
@@ -127,6 +158,26 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
         String uri = session.getUri().toString();
         if (uri.contains("userId=")) {
             return uri.split("userId=")[1].split("&")[0];
+        }
+        return null;
+    }
+    
+    private Long extractReservationIdFromSession(WebSocketSession session) {
+        // Extraire l'ID de réservation de l'URL de session
+        String uri = session.getUri().toString();
+        if (uri.contains("/ws/chat/")) {
+            String[] parts = uri.split("/ws/chat/");
+            if (parts.length > 1) {
+                String reservationPart = parts[1];
+                if (reservationPart.contains("?")) {
+                    reservationPart = reservationPart.split("\\?")[0];
+                }
+                try {
+                    return Long.parseLong(reservationPart);
+                } catch (NumberFormatException e) {
+                    return null;
+                }
+            }
         }
         return null;
     }

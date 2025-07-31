@@ -31,6 +31,15 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
       setState(() {
         _currentTabIndex = _tabController.index;
       });
+      // Recharger automatiquement quand on change d'onglet
+      if (_tabController.index == 0) {
+        controller.loadReservationsByStatus('en_attente');
+      }
+    });
+    
+    // Charger automatiquement les réservations au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      controller.loadReservationsByStatus('en_attente');
     });
   }
 

@@ -104,7 +104,21 @@ class _DocumentsViewState extends State<DocumentsView> {
   @override
   void initState() {
     super.initState();
-    _loadRecapitulatifs();
+    // Charger automatiquement les documents au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadRecapitulatifs();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger automatiquement quand la vue devient visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadRecapitulatifs();
+      }
+    });
   }
 
   Future<void> _loadRecapitulatifs() async {

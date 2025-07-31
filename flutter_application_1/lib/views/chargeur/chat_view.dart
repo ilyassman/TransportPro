@@ -70,6 +70,18 @@ class _ChatViewState extends State<ChatView> {
           destinataireNom = 'Chargeur';
         }
       });
+      
+      // Logs pour déboguer
+      print('=== DEBUG CHAT CHARGEUR ===');
+      print('Current User ID: $currentUserId');
+      print('Current Username: $currentUsername');
+      print('Destinataire ID: $destinataireId');
+      print('Destinataire Nom: $destinataireNom');
+      print('Reservation ID: ${widget.reservation.id}');
+      print('Transporteur ID: ${widget.reservation.transporteurId}');
+      print('Transporteur Nom: ${widget.reservation.transporteurNom}');
+      print('===========================');
+      
     } catch (e) {
       print('Erreur lors du chargement du profil: $e');
     }

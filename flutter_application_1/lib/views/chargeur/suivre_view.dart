@@ -21,7 +21,21 @@ class _SuivreViewState extends State<SuivreView> {
   @override
   void initState() {
     super.initState();
-    _loadReservations();
+    // Charger automatiquement les réservations au démarrage
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadReservations();
+    });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Recharger automatiquement quand la vue devient visible
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadReservations();
+      }
+    });
   }
 
   Future<void> _loadReservations() async {

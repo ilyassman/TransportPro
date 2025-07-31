@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import '../models/available_reservation_model.dart';
 import '../services/available_reservation_service.dart';
 import 'package:flutter/material.dart';
+import 'transporteur_controller.dart';
 
 class AvailableReservationController extends GetxController {
   final AvailableReservationService _service = AvailableReservationService();
