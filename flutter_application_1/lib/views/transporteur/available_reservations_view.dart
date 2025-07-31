@@ -5,6 +5,7 @@ import '../../models/available_reservation_model.dart';
 import '../../services/translation_service.dart';
 import 'reservation_details_view.dart';
 import 'my_reservations_view.dart';
+import '../../utils/ville_utils.dart';
 
 class AvailableReservationsView extends StatefulWidget {
   const AvailableReservationsView({super.key});
@@ -409,7 +410,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                   Expanded(
                     child: _buildInfoColumn(
                       'Départ',
-                      reservation.lieuDepart,
+                      VilleUtils.villeDepuisAdresse(reservation.lieuDepart),
                       Icons.location_on,
                       const Color(0xFFEF4444),
                     ),
@@ -425,7 +426,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                   Expanded(
                     child: _buildInfoColumn(
                       'Arrivée',
-                      reservation.lieuArrivee,
+                      VilleUtils.villeDepuisAdresse(reservation.lieuArrivee),
                       Icons.location_on,
                       const Color(0xFF10B981),
                     ),
@@ -665,8 +666,8 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
         title: const Text('Accepter la réservation'),
         content: Text(
           'Êtes-vous sûr de vouloir accepter cette mission au tarif proposé ?\n\n'
-          'Départ: ${reservation.lieuDepart}\n'
-          'Arrivée: ${reservation.lieuArrivee}\n'
+          'Départ: ${VilleUtils.villeDepuisAdresse(reservation.lieuDepart)}\n'
+          'Arrivée: ${VilleUtils.villeDepuisAdresse(reservation.lieuArrivee)}\n'
           'Tarif: ${reservation.getFormattedTarif()}\n\n'
           'Votre proposition sera envoyée au chargeur pour validation.',
         ),
@@ -727,8 +728,8 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'Départ: ${reservation.lieuDepart}\n'
-                'Arrivée: ${reservation.lieuArrivee}\n'
+                'Départ: ${VilleUtils.villeDepuisAdresse(reservation.lieuDepart)}\n'
+                'Arrivée: ${VilleUtils.villeDepuisAdresse(reservation.lieuArrivee)}\n'
                 'Tarif original: ${reservation.getFormattedTarif()}\n\n'
                 'Proposez votre tarif :',
                 style: const TextStyle(fontSize: 14),

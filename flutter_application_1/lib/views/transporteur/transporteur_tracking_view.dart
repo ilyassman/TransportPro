@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'dart:async';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:geolocator/geolocator.dart';
@@ -10,6 +11,7 @@ import '../../models/available_reservation_model.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../services/camion_service.dart';
 import '../../models/camion_model.dart';
+import '../../utils/ville_utils.dart';
 
 class TransporteurTrackingView extends StatefulWidget {
   final AvailableReservation reservation;
@@ -33,6 +35,10 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
   double? camionLng;
   Image? camionIcon;
   MapController mapController = MapController();
+  
+  // Pour la mise à jour automatique de position
+  Timer? _positionUpdateTimer;
+  bool _isAutoUpdating = false;
 
   @override
   void initState() {
@@ -41,11 +47,19 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
     _fetchInitialCamionPosition();
     _fetchCoords();
     _connectWebSocket();
+    
+    // Démarrer automatiquement le suivi de position après un délai
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _startAutoPositionUpdate();
+      }
+    });
   }
 
   @override
   void dispose() {
     _channel?.sink.close();
+    _positionUpdateTimer?.cancel();
     super.dispose();
   }
 
@@ -195,12 +209,14 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
       
       if (token == null) {
         print('Erreur: Token d\'authentification manquant');
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Erreur: Token d\'authentification manquant'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        if (!_isAutoUpdating) { // Éviter les messages multiples en mode auto
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Erreur: Token d\'authentification manquant'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
         return;
       }
       
@@ -233,19 +249,23 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
         print('Response body: ${response.body}');
         
         if (response.statusCode == 200) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Position mise à jour !'),
-              backgroundColor: Colors.green,
-            ),
-          );
+          if (!_isAutoUpdating) { // Éviter les messages multiples en mode auto
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Position mise à jour !'),
+                backgroundColor: Colors.green,
+              ),
+            );
+          }
         } else {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('Erreur: ${response.body}'),
-              backgroundColor: Colors.red,
-            ),
-          );
+          if (!_isAutoUpdating) { // Éviter les messages multiples en mode auto
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Erreur: ${response.body}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
         }
       } else {
         print('Erreur: position ou camionId null');
@@ -254,12 +274,14 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
       }
     } catch (e) {
       print('Exception lors de la mise à jour: $e');
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur de mise à jour: $e'),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (!_isAutoUpdating) { // Éviter les messages multiples en mode auto
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur de mise à jour: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -298,6 +320,55 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
     }
   }
 
+  // Démarrer la mise à jour automatique de position
+  void _startAutoPositionUpdate() {
+    if (_isAutoUpdating) return; // Éviter les doublons
+    
+    setState(() {
+      _isAutoUpdating = true;
+    });
+    
+    // Mettre à jour immédiatement
+    _updateMyPosition();
+    
+    // Puis programmer les mises à jour toutes les 6 secondes
+    _positionUpdateTimer = Timer.periodic(const Duration(seconds: 6), (timer) {
+      if (mounted && _isAutoUpdating) {
+        _updateMyPosition();
+      } else {
+        timer.cancel();
+      }
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('🔄 Suivi automatique activé - Position mise à jour toutes les 6 secondes'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
+  // Arrêter la mise à jour automatique de position
+  void _stopAutoPositionUpdate() {
+    if (!_isAutoUpdating) return;
+    
+    setState(() {
+      _isAutoUpdating = false;
+    });
+    
+    _positionUpdateTimer?.cancel();
+    _positionUpdateTimer = null;
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('⏹️ Suivi automatique désactivé'),
+        backgroundColor: Colors.orange,
+        duration: Duration(seconds: 2),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -305,14 +376,22 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
         title: const Text('Suivi en direct'),
         backgroundColor: const Color(0xFF1E3A8A),
         foregroundColor: Colors.white,
-                 actions: [
-           if (camionId != null)
-             IconButton(
-               icon: const Icon(Icons.my_location),
-               onPressed: () => _updateMyPosition(),
-               tooltip: 'Mettre à jour ma position GPS',
-             ),
-         ],
+        actions: [
+          if (camionId != null) ...[
+            // Bouton pour mettre à jour manuellement
+            IconButton(
+              icon: const Icon(Icons.my_location),
+              onPressed: () => _updateMyPosition(),
+              tooltip: 'Mettre à jour ma position GPS',
+            ),
+            // Bouton pour activer/désactiver le suivi automatique
+            IconButton(
+              icon: Icon(_isAutoUpdating ? Icons.stop : Icons.play_arrow),
+              onPressed: _isAutoUpdating ? _stopAutoPositionUpdate : _startAutoPositionUpdate,
+              tooltip: _isAutoUpdating ? 'Arrêter le suivi automatique' : 'Démarrer le suivi automatique',
+            ),
+          ],
+        ],
       ),
       body: loading
           ? const Center(
@@ -379,75 +458,104 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
                     ),
                   ),
                 )
-              : FlutterMap(
-                  mapController: mapController,
-                  options: MapOptions(
-                    bounds: (departCoord != null && arriveeCoord != null)
-                        ? LatLngBounds(departCoord!, arriveeCoord!)
-                        : null,
-                    boundsOptions: const FitBoundsOptions(padding: EdgeInsets.all(80)),
-                  ),
+              : Column(
                   children: [
-                    TileLayer(
-                      urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                      userAgentPackageName: 'com.example.app',
-                    ),
-                    if (departCoord != null && arriveeCoord != null)
-                      PolylineLayer(
-                        polylines: [
-                          Polyline(
-                            points: routePoints.isNotEmpty ? routePoints : [departCoord!, arriveeCoord!],
-                            color: const Color(0xFF1E3A8A),
-                            strokeWidth: 4,
-                          ),
-                        ],
-                      ),
-                    if (departCoord != null)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: departCoord!,
-                            width: 50,
-                            height: 50,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF1E3A8A),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 3),
-                              ),
-                              child: const Icon(
-                                Icons.local_shipping,
+                    // Bannière de statut du suivi automatique
+                    if (_isAutoUpdating)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                        color: Colors.green.withOpacity(0.9),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.sync, color: Colors.white, size: 16),
+                            const SizedBox(width: 8),
+                            const Text(
+                              '🔄 Suivi automatique actif - Position mise à jour toutes les 6 secondes',
+                              style: TextStyle(
                                 color: Colors.white,
-                                size: 24,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    if (arriveeCoord != null)
-                      MarkerLayer(
-                        markers: [
-                          Marker(
-                            point: arriveeCoord!,
-                            width: 40,
-                            height: 40,
-                            child: Container(
-                              decoration: BoxDecoration(
-                                color: const Color(0xFF10B981),
-                                shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
-                              ),
-                              child: const Icon(
-                                Icons.flag,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                  ],
-                ),
+                                         // Carte
+                     Expanded(
+                       child: FlutterMap(
+                         mapController: mapController,
+                         options: MapOptions(
+                           bounds: (departCoord != null && arriveeCoord != null)
+                               ? LatLngBounds(departCoord!, arriveeCoord!)
+                               : null,
+                           boundsOptions: const FitBoundsOptions(padding: EdgeInsets.all(80)),
+                         ),
+                         children: [
+                           TileLayer(
+                             urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+                             userAgentPackageName: 'com.example.app',
+                           ),
+                           if (departCoord != null && arriveeCoord != null)
+                             PolylineLayer(
+                               polylines: [
+                                 Polyline(
+                                   points: routePoints.isNotEmpty ? routePoints : [departCoord!, arriveeCoord!],
+                                   color: const Color(0xFF1E3A8A),
+                                   strokeWidth: 4,
+                                 ),
+                               ],
+                             ),
+                           if (departCoord != null)
+                             MarkerLayer(
+                               markers: [
+                                 Marker(
+                                   point: departCoord!,
+                                   width: 50,
+                                   height: 50,
+                                   child: Container(
+                                     decoration: BoxDecoration(
+                                       color: const Color(0xFF1E3A8A),
+                                       shape: BoxShape.circle,
+                                       border: Border.all(color: Colors.white, width: 3),
+                                     ),
+                                     child: const Icon(
+                                       Icons.local_shipping,
+                                       color: Colors.white,
+                                       size: 24,
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             ),
+                           if (arriveeCoord != null)
+                             MarkerLayer(
+                               markers: [
+                                 Marker(
+                                   point: arriveeCoord!,
+                                   width: 40,
+                                   height: 40,
+                                   child: Container(
+                                     decoration: BoxDecoration(
+                                       color: const Color(0xFF10B981),
+                                       shape: BoxShape.circle,
+                                       border: Border.all(color: Colors.white, width: 2),
+                                     ),
+                                     child: const Icon(
+                                       Icons.flag,
+                                       color: Colors.white,
+                                       size: 20,
+                                     ),
+                                   ),
+                                 ),
+                               ],
+                             ),
+                         ],
+                       ),
+                     ),
+                   ],
+                 ),
       floatingActionButton: (departCoord != null)
           ? FloatingActionButton(
               onPressed: () {

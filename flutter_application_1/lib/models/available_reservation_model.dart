@@ -115,4 +115,26 @@ class AvailableReservation {
   String getFormattedPoids() {
     return '${poids.toStringAsFixed(0)} kg';
   }
+
+  // Méthode pour convertir en JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'typeMarchandise': typeMarchandise,
+      'volume': volume,
+      'poids': poids,
+      'lieuDepart': lieuDepart,
+      'lieuArrivee': lieuArrivee,
+      'dateReservation': dateReservation.toIso8601String(),
+      'dateLivraison': dateLivraison?.toIso8601String(),
+      'statut': statut,
+      'tarif': tarif,
+      'modePaiement': modePaiement,
+      'chargeur': chargeur,
+      'createdAt': createdAt.toIso8601String(),
+      'chargeurNom': chargeurNom,
+      'chargeurId': chargeurId,
+      'trajetInfo': '$lieuDepart → $lieuArrivee',
+    };
+  }
 } 

@@ -95,4 +95,6 @@ class ReservationService {
       throw Exception('Erreur lors de la récupération des récapitulatifs');
     }
   }
+  
+
 } 

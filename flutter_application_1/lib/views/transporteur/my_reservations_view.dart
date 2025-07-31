@@ -5,6 +5,7 @@ import '../../models/available_reservation_model.dart';
 import '../../services/translation_service.dart';
 import 'reservation_details_view.dart';
 import '../../models/reservation_display_model.dart'; // Correction de l'import
+import '../../utils/ville_utils.dart';
 
 class MyReservationsView extends StatefulWidget {
   const MyReservationsView({super.key});
@@ -25,8 +26,8 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
   @override
   void initState() {
     super.initState();
-    _statusTabController = TabController(length: 4, vsync: this);
-    _selectedStatus = _getStatusOptions().first;
+    _statusTabController = TabController(length: 3, vsync: this); // Changé de 4 à 3
+    _selectedStatus = _getStatusOptions().first; // Sera maintenant 'EN_COURS'
     
     // Ajouter un listener pour gérer les changements d'onglets
     _statusTabController.addListener(() {
@@ -98,7 +99,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
   }
 
   List<String> _getStatusOptions() {
-    return ['CONFIRME', 'EN_COURS', 'EN_TRANSIT', 'TERMINEE'];
+    return ['EN_COURS', 'EN_TRANSIT', 'TERMINEE'];
   }
 
   List<AvailableReservation> _getFilteredReservations() {
@@ -439,7 +440,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
                   Expanded(
                     child: _buildInfoColumn(
                       'Départ',
-                      reservation.lieuDepart,
+                      VilleUtils.villeDepuisAdresse(reservation.lieuDepart),
                       Icons.location_on,
                       const Color(0xFFEF4444),
                     ),
@@ -455,7 +456,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
                   Expanded(
                     child: _buildInfoColumn(
                       'Arrivée',
-                      reservation.lieuArrivee,
+                      VilleUtils.villeDepuisAdresse(reservation.lieuArrivee),
                       Icons.location_on,
                       const Color(0xFF10B981),
                     ),
@@ -733,8 +734,8 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
       final reservationDisplay = ReservationDisplay(
         id: reservation.id,
         status: reservation.statut,
-        lieuDepart: reservation.lieuDepart,
-        lieuArrivee: reservation.lieuArrivee,
+        lieuDepart: VilleUtils.villeDepuisAdresse(reservation.lieuDepart),
+        lieuArrivee: VilleUtils.villeDepuisAdresse(reservation.lieuArrivee),
         transporteurNom: reservation.chargeurNom,
         transporteurPhone: '', // Pas de téléphone disponible
         transporteurId: reservation.chargeurId, // ID du chargeur

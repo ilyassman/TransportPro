@@ -47,6 +47,8 @@ public interface ReservationService {
     // Récupérer les récapitulatifs de réservations
     List<Map<String, Object>> getReservationRecapitulatif(Principal principal);
     
+
+    
     // Récupérer une réservation par ID
     Reservation getReservationById(Long reservationId);
 

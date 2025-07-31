@@ -48,6 +48,8 @@ public class ReservationController {
         List<Map<String, Object>> recapitulatifs = reservationService.getReservationRecapitulatif(principal);
         return ResponseEntity.ok(recapitulatifs);
     }
+    
+
 
     @PutMapping("/{reservationId}/camion/{camionId}/{isIgnore}")
     public ResponseEntity<?> updateReservationWithCamion(

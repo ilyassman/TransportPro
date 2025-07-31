@@ -141,4 +141,67 @@ class TransporteurController extends GetxController {
       isLoading(false);
     }
   }
+  
+  Future<bool> resetCamionAvailability() async {
+    try {
+      isLoading(true);
+      
+      if (camion.value == null || camion.value!.id == null) {
+        print('Erreur: Camion ou ID du camion est null');
+        return false;
+      }
+      
+      final success = await camionService.resetCamionAvailability(camion.value!.id!);
+      
+      if (success) {
+        // Mettre à jour le camion local
+        final updatedCamion = await camionService.getCamionById(camion.value!.id!);
+        if (updatedCamion != null) {
+          camion(updatedCamion);
+        }
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      print('Erreur lors de la réinitialisation de la disponibilité: $e');
+      return false;
+    } finally {
+      isLoading(false);
+    }
+  }
+  
+  Future<bool> resetMyCamionAvailability() async {
+    try {
+      isLoading(true);
+      
+      final success = await camionService.resetMyCamionAvailability();
+      
+      if (success) {
+        // Mettre à jour le camion local
+        await checkTransporteurCamion();
+        return true;
+      }
+      
+      return false;
+    } catch (e) {
+      print('Erreur lors de la réinitialisation de la disponibilité: $e');
+      return false;
+    } finally {
+      isLoading(false);
+    }
+  }
+  
+  Future<Map<String, dynamic>?> getCamionAvailability() async {
+    try {
+      if (camion.value == null || camion.value!.id == null) {
+        return null;
+      }
+      
+      return await camionService.getCamionAvailability(camion.value!.id!);
+    } catch (e) {
+      print('Erreur lors de la récupération de la disponibilité: $e');
+      return null;
+    }
+  }
 } 

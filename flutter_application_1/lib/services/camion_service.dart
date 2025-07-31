@@ -111,4 +111,40 @@ class CamionService {
       return null;
     }
   }
+  
+  Future<bool> resetCamionAvailability(int camionId) async {
+    try {
+      final dio = await _getDioWithToken();
+      final response = await dio.put('/api/camions/$camionId/reset-availability');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erreur resetCamionAvailability: $e');
+      return false;
+    }
+  }
+  
+  Future<bool> resetMyCamionAvailability() async {
+    try {
+      final dio = await _getDioWithToken();
+      final response = await dio.put('/api/camions/my/reset-availability');
+      return response.statusCode == 200;
+    } catch (e) {
+      print('Erreur resetMyCamionAvailability: $e');
+      return false;
+    }
+  }
+  
+  Future<Map<String, dynamic>?> getCamionAvailability(int camionId) async {
+    try {
+      final dio = await _getDioWithToken();
+      final response = await dio.get('/api/camions/$camionId/availability');
+      if (response.statusCode == 200) {
+        return response.data;
+      }
+      return null;
+    } catch (e) {
+      print('Erreur getCamionAvailability: $e');
+      return null;
+    }
+  }
 } 

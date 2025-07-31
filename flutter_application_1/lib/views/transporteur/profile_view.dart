@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import '../../services/profile_service.dart';
 import '../../services/translation_service.dart';
 import '../../controllers/auth_controller.dart';
-import 'edit_profile_view.dart';
 
 class ProfileView extends StatefulWidget {
   const ProfileView({Key? key}) : super(key: key);
@@ -100,30 +99,18 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildProfileContent() {
     return SingleChildScrollView(
-      padding: EdgeInsets.only(
-        top: MediaQuery.of(context).padding.top + 20,
-        bottom: MediaQuery.of(context).padding.bottom + 100,
-      ),
+      padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          // Header avec photo de profil
+          const SizedBox(height: 20),
           _buildProfileHeader(),
           const SizedBox(height: 24),
-          
-          // Informations du profil
           _buildProfileInfo(),
           const SizedBox(height: 24),
-          
-          // Actions
-          _buildProfileActions(),
+          _buildSettingsSection(),
           const SizedBox(height: 24),
-          
-          // Section sécurité
-          _buildSecuritySection(),
-          const SizedBox(height: 24),
-          
-          // Bouton de déconnexion
-          _buildLogoutButton(),
+          _buildActionsSection(),
+          const SizedBox(height: 32),
         ],
       ),
     );
@@ -131,37 +118,40 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildProfileHeader() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
+        color: Colors.white.withOpacity(0.9),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.blueGrey.withOpacity(0.15),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF1E3A8A).withOpacity(0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 8),
           ),
         ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         children: [
-          // Photo de profil
+          // Avatar
           Container(
-            width: 120,
-            height: 120,
+            width: 100,
+            height: 100,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
               gradient: const LinearGradient(
                 colors: [Color(0xFF1E3A8A), Color(0xFF3B82F6)],
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
               ),
+              borderRadius: BorderRadius.circular(50),
               boxShadow: [
                 BoxShadow(
                   color: const Color(0xFF1E3A8A).withOpacity(0.3),
-                  blurRadius: 20,
-                  offset: const Offset(0, 8),
+                  blurRadius: 15,
+                  offset: const Offset(0, 5),
                 ),
               ],
             ),
@@ -169,66 +159,68 @@ class _ProfileViewState extends State<ProfileView> {
               child: Text(
                 _getInitials(),
                 style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 48,
+                  fontSize: 36,
                   fontWeight: FontWeight.bold,
-                  fontFamily: 'Montserrat',
+                  color: Colors.white,
                 ),
               ),
             ),
           ),
           const SizedBox(height: 16),
           
-          // Nom complet
+          // Nom d'utilisateur
           Text(
-            _getFullName(),
+            _username ?? 'Utilisateur',
             style: const TextStyle(
               fontSize: 24,
               fontWeight: FontWeight.bold,
-              color: Color(0xFF1E293B),
-              fontFamily: 'Montserrat',
+              color: Color(0xFF1E3A8A),
             ),
-            textAlign: TextAlign.center,
           ),
+          
           const SizedBox(height: 8),
           
-          // Username
-          Text(
-            '@${_username ?? 'transporteur'}',
-            style: const TextStyle(
-              fontSize: 16,
-              color: Color(0xFF64748B),
-              fontFamily: 'Montserrat',
+          // Email
+          if (_profileData?['email'] != null)
+            Text(
+              _profileData!['email'],
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
           
-          // Badge transporteur
+          const SizedBox(height: 16),
+          
+          // Badge de statut
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             decoration: BoxDecoration(
-              color: const Color(0xFF1E3A8A).withOpacity(0.1),
+              color: const Color(0xFF10B981).withOpacity(0.1),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: const Color(0xFF1E3A8A).withOpacity(0.3),
+                color: const Color(0xFF10B981),
+                width: 1,
               ),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(
-                  Icons.local_shipping,
-                  color: Color(0xFF1E3A8A),
-                  size: 20,
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF10B981),
+                    shape: BoxShape.circle,
+                  ),
                 ),
                 const SizedBox(width: 8),
-                Text(
-                  'Transporteur',
-                  style: const TextStyle(
-                    color: Color(0xFF1E3A8A),
+                const Text(
+                  'Compte actif',
+                  style: TextStyle(
+                    color: Color(0xFF10B981),
                     fontWeight: FontWeight.w600,
                     fontSize: 14,
-                    fontFamily: 'Montserrat',
                   ),
                 ),
               ],
@@ -241,50 +233,46 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildProfileInfo() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.blueGrey.withOpacity(0.15),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF1E3A8A).withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Titre de section
-          Row(
-            children: [
-              const Icon(
-                Icons.person_outline,
-                color: Color(0xFF1E3A8A),
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Informations personnelles',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-            ],
+          Text(
+            'Informations du compte',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E3A8A),
+            ),
           ),
-          const SizedBox(height: 20),
-          
-          // Informations
-          _buildInfoRow('Nom', _profileData?['firstName'] ?? 'Non renseigné'),
-          _buildInfoRow('Prénom', _profileData?['lastName'] ?? 'Non renseigné'),
-          _buildInfoRow('Email', _profileData?['email'] ?? 'Non renseigné'),
+          const SizedBox(height: 16),
+          _buildInfoRow('Nom d\'utilisateur', _username ?? 'Non disponible'),
+          _buildInfoRow('Email', _profileData?['email'] ?? 'Non disponible'),
+          _buildInfoRow('Prénom', _profileData?['firstName'] ?? 'Non renseigné'),
+          _buildInfoRow('Nom', _profileData?['lastName'] ?? 'Non renseigné'),
           _buildInfoRow('Téléphone', _profileData?['phone'] ?? 'Non renseigné'),
           _buildInfoRow('Entreprise', _profileData?['companyName'] ?? 'Non renseigné'),
+          _buildInfoRow('Type de compte', 'Transporteur'),
+          if (_profileData?['twoFactorEnabled'] != null)
+            _buildInfoRow(
+              'Authentification 2FA', 
+              _profileData!['twoFactorEnabled'] == true ? 'Activée' : 'Désactivée'
+            ),
         ],
       ),
     );
@@ -292,31 +280,28 @@ class _ProfileViewState extends State<ProfileView> {
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
             flex: 2,
             child: Text(
               label,
-              style: const TextStyle(
+              style: TextStyle(
                 fontSize: 14,
-                color: Color(0xFF64748B),
-                fontFamily: 'Montserrat',
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          const SizedBox(width: 16),
           Expanded(
             flex: 3,
             child: Text(
               value,
               style: const TextStyle(
                 fontSize: 14,
-                color: Color(0xFF1E293B),
-                fontWeight: FontWeight.w500,
-                fontFamily: 'Montserrat',
+                color: Color(0xFF1E3A8A),
+                fontWeight: FontWeight.w600,
               ),
             ),
           ),
@@ -325,61 +310,189 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _buildProfileActions() {
+  Widget _buildSettingsSection() {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: Colors.blueGrey.withOpacity(0.15),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
+            color: const Color(0xFF1E3A8A).withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
           ),
         ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Titre de section
-          Row(
-            children: [
-              const Icon(
-                Icons.settings_outlined,
-                color: Color(0xFF1E3A8A),
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Actions',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-            ],
+          Text(
+            'Paramètres',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E3A8A),
+            ),
           ),
-          const SizedBox(height: 20),
-          
-          // Bouton modifier le profil
+          const SizedBox(height: 16),
+          _buildSettingTile(
+            icon: Icons.notifications_outlined,
+            title: 'Notifications',
+            subtitle: 'Gérer les notifications',
+            onTap: () => _showNotificationSettings(),
+          ),
+          _buildSettingTile(
+            icon: Icons.security_outlined,
+            title: 'Sécurité',
+            subtitle: 'Authentification 2FA',
+            onTap: () => _showSecuritySettings(),
+          ),
+          _buildSettingTile(
+            icon: Icons.language_outlined,
+            title: 'Langue',
+            subtitle: TranslationService.isArabic ? 'العربية' : 'Français',
+            onTap: () => _showLanguageSettings(),
+          ),
+          _buildSettingTile(
+            icon: Icons.help_outline,
+            title: 'Aide et support',
+            subtitle: 'Centre d\'aide',
+            onTap: () => _showHelpAndSupport(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSettingTile({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E3A8A).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF1E3A8A),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E3A8A),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey[400],
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionsSection() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.9),
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF1E3A8A).withOpacity(0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+        border: Border.all(
+          color: Colors.white.withOpacity(0.3),
+          width: 1,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Actions',
+            style: const TextStyle(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Color(0xFF1E3A8A),
+            ),
+          ),
+          const SizedBox(height: 16),
           _buildActionButton(
             icon: Icons.edit_outlined,
             title: 'Modifier le profil',
-            subtitle: 'Modifier vos informations personnelles',
-            onTap: () => _navigateToEditProfile(),
+            color: const Color(0xFF3B82F6),
+            onTap: () async {
+              final result = await Get.toNamed('/transporteur-edit-profile');
+              // Rafraîchir le profil après retour de l'édition
+              _loadProfileData();
+              
+              // Si la mise à jour a réussi, afficher un message
+              if (result == true) {
+                Get.snackbar(
+                  'Succès',
+                  'Profil mis à jour avec succès',
+                  backgroundColor: const Color(0xFF10B981),
+                  colorText: Colors.white,
+                  duration: const Duration(seconds: 3),
+                  snackPosition: SnackPosition.TOP,
+                  margin: const EdgeInsets.all(16),
+                  borderRadius: 8,
+                  icon: const Icon(
+                    Icons.check_circle,
+                    color: Colors.white,
+                  ),
+                );
+              }
+            },
           ),
           const SizedBox(height: 12),
-          
-          // Bouton documents
           _buildActionButton(
-            icon: Icons.description_outlined,
-            title: 'Mes documents',
-            subtitle: 'Gérer vos documents',
-            onTap: () => _navigateToDocuments(),
+            icon: Icons.logout,
+            title: 'Se déconnecter',
+            color: const Color(0xFFEF4444),
+            onTap: () => _showLogoutDialog(),
           ),
         ],
       ),
@@ -389,289 +502,819 @@ class _ProfileViewState extends State<ProfileView> {
   Widget _buildActionButton({
     required IconData icon,
     required String title,
-    required String subtitle,
+    required Color color,
     required VoidCallback onTap,
   }) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: const Color(0xFFE2E8F0),
-          width: 1,
-        ),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(16),
-          onTap: onTap,
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1E3A8A).withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    icon,
-                    color: const Color(0xFF1E3A8A),
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        title,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                          color: Color(0xFF1E293B),
-                          fontFamily: 'Montserrat',
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        subtitle,
-                        style: const TextStyle(
-                          fontSize: 14,
-                          color: Color(0xFF64748B),
-                          fontFamily: 'Montserrat',
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Color(0xFF64748B),
-                  size: 16,
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildSecuritySection() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.95),
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.blueGrey.withOpacity(0.15),
-            blurRadius: 30,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Titre de section
-          Row(
-            children: [
-              const Icon(
-                Icons.security_outlined,
-                color: Color(0xFF1E3A8A),
-                size: 24,
-              ),
-              const SizedBox(width: 12),
-              Text(
-                'Sécurité',
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: Color(0xFF1E293B),
-                  fontFamily: 'Montserrat',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 20),
-          
-          // Statut 2FA
-          Row(
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Authentification à deux facteurs',
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF1E293B),
-                        fontFamily: 'Montserrat',
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _profileData?['twoFactorEnabled'] == true 
-                          ? 'Activée'
-                          : 'Non activée',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: _profileData?['twoFactorEnabled'] == true 
-                            ? Colors.green
-                            : const Color(0xFF64748B),
-                        fontFamily: 'Montserrat',
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(
-                  color: _profileData?['twoFactorEnabled'] == true 
-                      ? Colors.green.withOpacity(0.1)
-                      : Colors.grey.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: _profileData?['twoFactorEnabled'] == true 
-                        ? Colors.green
-                        : Colors.grey,
-                  ),
-                ),
-                child: Text(
-                  _profileData?['twoFactorEnabled'] == true 
-                      ? 'Sécurisé'
-                      : 'Non sécurisé',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: _profileData?['twoFactorEnabled'] == true 
-                        ? Colors.green
-                        : Colors.grey,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildLogoutButton() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      child: SizedBox(
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
         width: double.infinity,
-        child: ElevatedButton(
-          onPressed: _handleLogout,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.red,
-            foregroundColor: Colors.white,
-            elevation: 0,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 20),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: color.withOpacity(0.3),
+            width: 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Icon(
+              icon,
+              color: color,
+              size: 20,
             ),
-          ),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.logout, size: 20),
-              const SizedBox(width: 8),
-              Text(
-                'Se déconnecter',
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w600,
-                  fontFamily: 'Montserrat',
-                ),
+            const SizedBox(width: 12),
+            Text(
+              title,
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w600,
+                color: color,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
   }
 
   String _getInitials() {
-    final firstName = _profileData?['firstName'] ?? '';
-    final lastName = _profileData?['lastName'] ?? '';
+    if (_username == null || _username!.isEmpty) return 'U';
     
-    if (firstName.isNotEmpty && lastName.isNotEmpty) {
-      return '${firstName[0]}${lastName[0]}'.toUpperCase();
-    } else if (firstName.isNotEmpty) {
-      return firstName[0].toUpperCase();
-    } else if (lastName.isNotEmpty) {
-      return lastName[0].toUpperCase();
-    } else {
-      return 'T';
+    final parts = _username!.split(' ');
+    if (parts.length >= 2) {
+      return '${parts[0][0]}${parts[1][0]}'.toUpperCase();
     }
+    return _username![0].toUpperCase();
   }
 
-  String _getFullName() {
-    final firstName = _profileData?['firstName'] ?? '';
-    final lastName = _profileData?['lastName'] ?? '';
-    
-    if (firstName.isNotEmpty && lastName.isNotEmpty) {
-      return '$firstName $lastName';
-    } else if (firstName.isNotEmpty) {
-      return firstName;
-    } else if (lastName.isNotEmpty) {
-      return lastName;
-    } else {
-      return 'Transporteur';
-    }
+  void _showLogoutDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Se déconnecter',
+            style: TextStyle(
+              color: Color(0xFF1E3A8A),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            'Êtes-vous sûr de vouloir vous déconnecter ?',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _authController.logout();
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Se déconnecter'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
-  void _navigateToEditProfile() {
-    Get.toNamed('/transporteur-edit-profile')?.then((_) {
-      // Recharger les données après retour
-      refreshProfile();
-    });
-  }
-
-  void _navigateToDocuments() {
-    // Navigation vers la page documents (à implémenter)
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Page documents en cours de développement'),
-        backgroundColor: Colors.orange,
+  void _showNotificationSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        color: const Color(0xFF1E3A8A),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Paramètres de notifications',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3A8A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _buildNotificationOption(
+                    title: 'Notifications push',
+                    subtitle: 'Recevoir des notifications sur votre appareil',
+                    value: true,
+                    onChanged: (value) {
+                      // TODO: Implémenter la logique de changement
+                    },
+                  ),
+                  _buildNotificationOption(
+                    title: 'Notifications par email',
+                    subtitle: 'Recevoir des notifications par email',
+                    value: true,
+                    onChanged: (value) {
+                      // TODO: Implémenter la logique de changement
+                    },
+                  ),
+                  _buildNotificationOption(
+                    title: 'Notifications de réservation',
+                    subtitle: 'Nouvelles réservations et mises à jour',
+                    value: true,
+                    onChanged: (value) {
+                      // TODO: Implémenter la logique de changement
+                    },
+                  ),
+                  _buildNotificationOption(
+                    title: 'Notifications de transport',
+                    subtitle: 'Suivi en temps réel des transports',
+                    value: true,
+                    onChanged: (value) {
+                      // TODO: Implémenter la logique de changement
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
 
-  void _handleLogout() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Déconnexion'),
-        content: const Text('Êtes-vous sûr de vouloir vous déconnecter ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              _authController.logout();
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+  Widget _buildNotificationOption({
+    required String title,
+    required String subtitle,
+    required bool value,
+    required ValueChanged<bool> onChanged,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey[50],
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.grey[200]!),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1E3A8A),
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  subtitle,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.grey[600],
+                  ),
+                ),
+              ],
             ),
-            child: const Text('Déconnecter'),
+          ),
+          Switch(
+            value: value,
+            onChanged: onChanged,
+            activeColor: const Color(0xFF1E3A8A),
           ),
         ],
       ),
+    );
+  }
+
+  void _showSecuritySettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        color: const Color(0xFF1E3A8A),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Paramètres de sécurité',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3A8A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Statut 2FA
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: _profileData?['twoFactorEnabled'] == true 
+                          ? const Color(0xFF10B981).withOpacity(0.1)
+                          : const Color(0xFFF59E0B).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: _profileData?['twoFactorEnabled'] == true 
+                            ? const Color(0xFF10B981)
+                            : const Color(0xFFF59E0B),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _profileData?['twoFactorEnabled'] == true 
+                              ? Icons.security
+                              : Icons.security_outlined,
+                          color: _profileData?['twoFactorEnabled'] == true 
+                              ? const Color(0xFF10B981)
+                              : const Color(0xFFF59E0B),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Authentification 2FA',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                  color: _profileData?['twoFactorEnabled'] == true 
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFF59E0B),
+                                ),
+                              ),
+                              Text(
+                                _profileData?['twoFactorEnabled'] == true 
+                                    ? 'Activée - Votre compte est sécurisé'
+                                    : 'Désactivée - Activez pour plus de sécurité',
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: _profileData?['twoFactorEnabled'] == true 
+                                      ? const Color(0xFF10B981)
+                                      : const Color(0xFFF59E0B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 20),
+                  
+                  // Bouton pour activer/désactiver 2FA
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        _handleTwoFactorAction();
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: _profileData?['twoFactorEnabled'] == true 
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFF1E3A8A),
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        _profileData?['twoFactorEnabled'] == true 
+                            ? 'Désactiver 2FA'
+                            : 'Activer 2FA',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  
+                  const SizedBox(height: 16),
+                  
+                  // Informations sur la sécurité
+                  Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF1E3A8A).withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(
+                        color: const Color(0xFF1E3A8A).withOpacity(0.2),
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.info_outline,
+                              color: const Color(0xFF1E3A8A),
+                              size: 20,
+                            ),
+                            const SizedBox(width: 8),
+                            const Text(
+                              'À propos de la 2FA',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1E3A8A),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'L\'authentification à deux facteurs ajoute une couche de sécurité supplémentaire à votre compte en exigeant un code unique en plus de votre mot de passe.',
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Color(0xFF374151),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showLanguageSettings() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.5,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        color: const Color(0xFF1E3A8A),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Sélectionner la langue',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3A8A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  // Option Français
+                  _buildLanguageOption(
+                    title: 'Français',
+                    subtitle: 'Langue française',
+                    isSelected: !TranslationService.isArabic,
+                    onTap: () {
+                      TranslationService.setLanguage(false);
+                      Navigator.pop(context);
+                      setState(() {}); // Recharger l'interface
+                    },
+                  ),
+                  
+                  const SizedBox(height: 12),
+                  
+                  // Option Arabe
+                  _buildLanguageOption(
+                    title: 'العربية',
+                    subtitle: 'اللغة العربية',
+                    isSelected: TranslationService.isArabic,
+                    onTap: () {
+                      TranslationService.setLanguage(true);
+                      Navigator.pop(context);
+                      setState(() {}); // Recharger l'interface
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLanguageOption({
+    required String title,
+    required String subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: isSelected 
+              ? const Color(0xFF1E3A8A).withOpacity(0.1)
+              : Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected 
+                ? const Color(0xFF1E3A8A)
+                : Colors.grey[200]!,
+            width: isSelected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: isSelected 
+                          ? const Color(0xFF1E3A8A)
+                          : const Color(0xFF374151),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: isSelected 
+                          ? const Color(0xFF1E3A8A)
+                          : Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              Icon(
+                Icons.check_circle,
+                color: const Color(0xFF1E3A8A),
+                size: 24,
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showHelpAndSupport() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        height: MediaQuery.of(context).size.height * 0.7,
+        decoration: const BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        child: Column(
+          children: [
+            // Handle bar
+            Container(
+              margin: const EdgeInsets.only(top: 12),
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: () => Navigator.pop(context),
+                        icon: const Icon(Icons.arrow_back),
+                        color: const Color(0xFF1E3A8A),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'Aide et support',
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF1E3A8A),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  
+                  _buildHelpOption(
+                    icon: Icons.email_outlined,
+                    title: 'Contacter le support',
+                    subtitle: 'Envoyer un email au support',
+                    onTap: () {
+                      // TODO: Implémenter l'envoi d'email
+                      Navigator.pop(context);
+                    },
+                  ),
+                  
+                  _buildHelpOption(
+                    icon: Icons.phone_outlined,
+                    title: 'Appeler le support',
+                    subtitle: 'Appeler directement le support',
+                    onTap: () {
+                      // TODO: Implémenter l'appel
+                      Navigator.pop(context);
+                    },
+                  ),
+                  
+                  _buildHelpOption(
+                    icon: Icons.chat_outlined,
+                    title: 'Chat en direct',
+                    subtitle: 'Discuter avec un agent',
+                    onTap: () {
+                      // TODO: Implémenter le chat
+                      Navigator.pop(context);
+                    },
+                  ),
+                  
+                  _buildHelpOption(
+                    icon: Icons.article_outlined,
+                    title: 'FAQ',
+                    subtitle: 'Questions fréquemment posées',
+                    onTap: () {
+                      // TODO: Implémenter la FAQ
+                      Navigator.pop(context);
+                    },
+                  ),
+                  
+                  _buildHelpOption(
+                    icon: Icons.book_outlined,
+                    title: 'Guide utilisateur',
+                    subtitle: 'Documentation complète',
+                    onTap: () {
+                      // TODO: Implémenter le guide
+                      Navigator.pop(context);
+                    },
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildHelpOption({
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 12),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: const Color(0xFF1E3A8A).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                icon,
+                color: const Color(0xFF1E3A8A),
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: Color(0xFF1E3A8A),
+                    ),
+                  ),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Icon(
+              Icons.arrow_forward_ios,
+              color: Colors.grey[400],
+              size: 16,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleTwoFactorAction() async {
+    if (_profileData?['twoFactorEnabled'] == true) {
+      // Désactiver 2FA
+      _showDisableTwoFactorDialog();
+    } else {
+      // Activer 2FA
+      if (_username != null) {
+        Get.toNamed('/two-factor-setup', arguments: {'username': _username});
+      } else {
+        Get.snackbar(
+          'Erreur',
+          'Impossible de récupérer le nom d\'utilisateur',
+          backgroundColor: Colors.red,
+          colorText: Colors.white,
+        );
+      }
+    }
+  }
+
+  void _showDisableTwoFactorDialog() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          title: const Text(
+            'Désactiver 2FA',
+            style: TextStyle(
+              color: Color(0xFF1E3A8A),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: const Text(
+            'Êtes-vous sûr de vouloir désactiver l\'authentification à deux facteurs ? Vous devrez entrer votre code 2FA pour confirmer.',
+            style: TextStyle(fontSize: 16),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text(
+                'Annuler',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                // Naviguer vers la vue de désactivation 2FA
+                if (_username != null) {
+                  Get.toNamed('/two-factor-disable', arguments: {'username': _username});
+                } else {
+                  Get.snackbar(
+                    'Erreur',
+                    'Impossible de récupérer le nom d\'utilisateur',
+                    backgroundColor: Colors.red,
+                    colorText: Colors.white,
+                  );
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFFEF4444),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              child: const Text('Continuer'),
+            ),
+          ],
+        );
+      },
     );
   }
 } 

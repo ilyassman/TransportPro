@@ -8,6 +8,7 @@ import '../../services/translation_service.dart';
 import '../../services/reservation_service.dart';
 import 'available_reservations_view.dart';
 import 'profile_view.dart';
+import 'documents_view.dart';
 
 class TransporteurMainView extends StatefulWidget {
   const TransporteurMainView({super.key});
@@ -88,7 +89,7 @@ class _TransporteurMainViewState extends State<TransporteurMainView> {
       case 1:
         return const ReservationsPage();
       case 2:
-        return const ChatPage();
+        return const DocumentsView();
       case 3:
         return const ProfilPage();
       default:
@@ -368,6 +369,44 @@ class _TransporteurMainViewState extends State<TransporteurMainView> {
           _buildInfoRow(_getText('capacity'), '${camion.capacite.toStringAsFixed(1)} tonnes'),
           _buildInfoRow(_getText('type'), camion.type),
           _buildInfoRow(_getText('status'), camion.disponible ? _getText('available') : _getText('busy')),
+          if (!camion.disponible) ...[
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: () async {
+                  final controller = Get.put(TransporteurController());
+                  final success = await controller.resetCamionAvailability();
+                  if (success) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Camion remis en disponibilité avec succès !'),
+                        backgroundColor: Colors.green,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Erreur lors de la remise en disponibilité'),
+                        backgroundColor: Colors.red,
+                        duration: Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.refresh, color: Colors.white),
+                label: const Text('Remettre en disponibilité', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -537,8 +576,8 @@ class _TransporteurMainViewState extends State<TransporteurMainView> {
             label: _getText('Réservations'),
           ),
           BottomNavigationBarItem(
-            icon: Icon(Icons.chat, size: 28),
-            label: _getText('Chat'),
+            icon: Icon(Icons.description, size: 28),
+            label: 'Documents',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person, size: 28),
@@ -560,135 +599,7 @@ class ReservationsPage extends StatelessWidget {
   }
 }
 
-// Page du chat
-class ChatPage extends StatelessWidget {
-  const ChatPage({super.key});
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      extendBody: true,
-      backgroundColor: Colors.transparent,
-      body: Stack(
-        children: [
-          Container(
-            decoration: const BoxDecoration(
-              gradient: LinearGradient(
-                colors: [Color(0xFFF5F7FA), Color(0xFFE3E9F9), Color(0xFFD1D8F1)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-            ),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                // Header
-                Container(
-                  margin: const EdgeInsets.all(16),
-                  padding: const EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.95),
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.blueGrey.withOpacity(0.15),
-                        blurRadius: 30,
-                        offset: const Offset(0, 10),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    children: [
-                      Icon(
-                        Icons.chat_bubble_outline,
-                        color: const Color(0xFF1E3A8A),
-                        size: 28,
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Messages',
-                              style: const TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Color(0xFF1E293B),
-                                fontFamily: 'Montserrat',
-                              ),
-                            ),
-                            Text(
-                              'Communiquez avec vos clients',
-                              style: const TextStyle(
-                                fontSize: 14,
-                                color: Color(0xFF64748B),
-                                fontFamily: 'Montserrat',
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                // Contenu du chat
-                Expanded(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    padding: const EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.95),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.blueGrey.withOpacity(0.15),
-                          blurRadius: 30,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.chat_bubble_outline,
-                            size: 64,
-                            color: const Color(0xFF1E3A8A).withOpacity(0.5),
-                          ),
-                          const SizedBox(height: 16),
-                          Text(
-                            'Aucun message',
-                            style: TextStyle(
-                              fontSize: 18,
-                              color: const Color(0xFF1E293B).withOpacity(0.7),
-                              fontFamily: 'Montserrat',
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Les conversations apparaîtront ici',
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: const Color(0xFF64748B).withOpacity(0.7),
-                              fontFamily: 'Montserrat',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
 
 // Page du profil
 class ProfilPage extends StatelessWidget {

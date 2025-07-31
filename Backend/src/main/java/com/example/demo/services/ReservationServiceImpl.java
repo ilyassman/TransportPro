@@ -259,6 +259,15 @@ public class ReservationServiceImpl implements ReservationService {
         }
         
         reservation.setStatut(newStatus);
+        
+        // Si la réservation est terminée, réinitialiser la disponibilité du camion
+        if ("TERMINEE".equals(newStatus) && reservation.getCamion() != null) {
+            Camion camion = reservation.getCamion();
+            camion.setDisponible(true);
+            camionService.updateCamion(camion.getId(), camion);
+            System.out.println("Camion " + camion.getId() + " remis en disponibilité après réservation terminée");
+        }
+        
         return reservationRepository.save(reservation);
     }
     
@@ -439,7 +448,19 @@ public class ReservationServiceImpl implements ReservationService {
     @Override
     public List<Map<String, Object>> getReservationRecapitulatif(Principal principal) {
         AppUser user = accountService.loadUserByUsername(principal.getName());
-        List<Reservation> reservations = reservationRepository.findByChargeurOrderByDateReservationDesc(user);
+        List<Reservation> reservations;
+        
+        // Détecter si l'utilisateur est un transporteur ou un chargeur
+        boolean isTransporteur = user.getRoles().stream()
+            .anyMatch(role -> "TRANSPORTEUR".equals(role.getRolename()));
+        
+        if (isTransporteur) {
+            // Pour les transporteurs, récupérer les réservations où ils sont assignés
+            reservations = reservationRepository.findByCamionTransporteurOrderByDateReservationDesc(user);
+        } else {
+            // Pour les chargeurs, récupérer leurs propres réservations
+            reservations = reservationRepository.findByChargeurOrderByDateReservationDesc(user);
+        }
         
         List<Map<String, Object>> recapitulatifs = new ArrayList<>();
         for (Reservation reservation : reservations) {
@@ -454,13 +475,30 @@ public class ReservationServiceImpl implements ReservationService {
             recapitulatif.put("volume", reservation.getVolume());
             recapitulatif.put("tarif", reservation.getTarif());
             
-            // Informations du transporteur si assigné
-            if (reservation.getCamion() != null && reservation.getCamion().getTransporteur() != null) {
-                Map<String, Object> transporteurInfo = new HashMap<>();
-                transporteurInfo.put("username", reservation.getCamion().getTransporteur().getUsername());
-                transporteurInfo.put("firstName", reservation.getCamion().getTransporteur().getFirstName());
-                transporteurInfo.put("lastName", reservation.getCamion().getTransporteur().getLastName());
-                recapitulatif.put("transporteur", transporteurInfo);
+            if (isTransporteur) {
+                // Pour les transporteurs, ajouter les informations du chargeur
+                if (reservation.getChargeur() != null) {
+                    Map<String, Object> chargeurInfo = new HashMap<>();
+                    chargeurInfo.put("username", reservation.getChargeur().getUsername());
+                    chargeurInfo.put("firstName", reservation.getChargeur().getFirstName());
+                    chargeurInfo.put("lastName", reservation.getChargeur().getLastName());
+                    chargeurInfo.put("email", reservation.getChargeur().getEmail());
+                    chargeurInfo.put("phone", reservation.getChargeur().getPhone());
+                    recapitulatif.put("chargeur", chargeurInfo);
+                    recapitulatif.put("chargeurNom", reservation.getChargeur().getFirstName() + " " + reservation.getChargeur().getLastName());
+                    recapitulatif.put("chargeurId", reservation.getChargeur().getId());
+                }
+                // Informations du trajet
+                recapitulatif.put("trajetInfo", reservation.getLieuDepart() + " → " + reservation.getLieuArrivee());
+            } else {
+                // Pour les chargeurs, ajouter les informations du transporteur si assigné
+                if (reservation.getCamion() != null && reservation.getCamion().getTransporteur() != null) {
+                    Map<String, Object> transporteurInfo = new HashMap<>();
+                    transporteurInfo.put("username", reservation.getCamion().getTransporteur().getUsername());
+                    transporteurInfo.put("firstName", reservation.getCamion().getTransporteur().getFirstName());
+                    transporteurInfo.put("lastName", reservation.getCamion().getTransporteur().getLastName());
+                    recapitulatif.put("transporteur", transporteurInfo);
+                }
             }
             
             recapitulatifs.add(recapitulatif);
@@ -468,6 +506,8 @@ public class ReservationServiceImpl implements ReservationService {
         
         return recapitulatifs;
     }
+    
+
     
     @Override
     public Reservation getReservationById(Long reservationId) {

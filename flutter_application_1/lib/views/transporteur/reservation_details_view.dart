@@ -6,7 +6,9 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../../models/available_reservation_model.dart';
 import '../../services/translation_service.dart';
+import '../../services/available_reservation_service.dart';
 import 'transporteur_tracking_view.dart';
+import '../../utils/ville_utils.dart';
 
 class ReservationDetailsView extends StatefulWidget {
   final AvailableReservation reservation;
@@ -26,6 +28,7 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
   bool isLoadingMap = true;
   List<LatLng> routePoints = [];
   MapController mapController = MapController();
+  final AvailableReservationService _reservationService = AvailableReservationService();
 
   String _getText(String key) {
     return TranslationService.getText(key);
@@ -34,7 +37,10 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
   @override
   void initState() {
     super.initState();
-    _loadMapData();
+    // Charger la carte de manière asynchrone pour ne pas bloquer l'interface
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _loadMapData();
+    });
   }
 
   Future<void> _loadMapData() async {
@@ -50,8 +56,12 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
           isLoadingMap = false;
         });
 
-        // Charger les points de route (route réelle)
-        await _loadRoutePoints();
+        // Charger les points de route (route réelle) de manière asynchrone
+        _loadRoutePoints();
+      } else {
+        setState(() {
+          isLoadingMap = false;
+        });
       }
     } catch (e) {
       print('Erreur lors du chargement de la carte: $e');
@@ -66,7 +76,7 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
       final response = await http.get(
         Uri.parse('https://nominatim.openstreetmap.org/search?q=${Uri.encodeComponent(address)}&format=json&limit=1'),
         headers: {'User-Agent': 'TransportPro/1.0'},
-      );
+      ).timeout(const Duration(seconds: 5)); // Timeout de 5 secondes
 
       if (response.statusCode == 200) {
         final List data = json.decode(response.body);
@@ -93,52 +103,38 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
         final response = await http.get(
           url,
           headers: {'User-Agent': 'TransportPro/1.0'},
-        );
+        ).timeout(const Duration(seconds: 10)); // Timeout de 10 secondes
 
         if (response.statusCode == 200) {
           final data = json.decode(response.body);
           if (data['routes'] != null && data['routes'].isNotEmpty) {
-            final coordinates = data['routes'][0]['geometry']['coordinates'] as List;
-            final points = coordinates.map((coord) => 
-              LatLng(coord[1].toDouble(), coord[0].toDouble())
-            ).toList();
+            final route = data['routes'][0];
+            final geometry = route['geometry'];
             
-            setState(() {
-              routePoints = points;
-            });
-            
-            print('Route chargée avec ${points.length} points');
-          } else {
-            // Fallback: ligne droite si pas de route trouvée
-            setState(() {
-              routePoints = [departureLocation!, arrivalLocation!];
-            });
-            print('Route non trouvée, utilisation de la ligne droite');
+            if (geometry['coordinates'] != null) {
+              final coordinates = geometry['coordinates'] as List;
+              final points = coordinates.map((coord) {
+                return LatLng(coord[1].toDouble(), coord[0].toDouble());
+              }).toList();
+              
+              setState(() {
+                routePoints = points;
+              });
+              
+              print('Route chargée avec ${points.length} points');
+            }
           }
-        } else {
-          print('Erreur OSRM: ${response.statusCode}');
-          // Fallback: ligne droite
-          setState(() {
-            routePoints = [departureLocation!, arrivalLocation!];
-          });
         }
       } catch (e) {
         print('Erreur lors du chargement de la route: $e');
-        // Fallback: ligne droite
-        setState(() {
-          routePoints = [departureLocation!, arrivalLocation!];
-        });
+        // Ne pas afficher d'erreur à l'utilisateur, juste continuer sans route
       }
     }
   }
 
   String _extractCityFromAddress(String address) {
-    // Logique d'extraction de ville depuis l'adresse
-    final parts = address.split(',');
-    if (parts.isNotEmpty) {
-      return parts.last.trim();
-    }
-    return address;
+    // Utiliser la logique d'extraction de ville depuis le code postal
+    return VilleUtils.villeDepuisAdresse(address);
   }
 
   @override
@@ -514,31 +510,100 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
                 ),
               ),
             ),
-          // Bouton "Proposer" pour les autres statuts
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Action pour proposer
-                Get.back(result: true);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: const Color(0xFF1E3A8A),
-                foregroundColor: Colors.white,
-                elevation: 2,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+          
+          // Boutons de changement d'état selon la logique
+          if (widget.reservation.statut.toUpperCase() == 'EN_COURS')
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ElevatedButton(
+                onPressed: () => _changeReservationStatus('EN_TRANSIT'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF59E0B),
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.local_shipping, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Commencer le transport',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Montserrat',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          
+          if (widget.reservation.statut.toUpperCase() == 'EN_TRANSIT')
+            Container(
+              width: double.infinity,
+              margin: const EdgeInsets.only(bottom: 12),
+              child: ElevatedButton(
+                onPressed: () => _changeReservationStatus('TERMINEE'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF10B981),
+                  foregroundColor: Colors.white,
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.check_circle, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Marquer comme terminée',
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        fontFamily: 'Montserrat',
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          
+          // Message informatif pour les réservations terminées
+          if (widget.reservation.statut.toUpperCase() == 'TERMINEE')
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF10B981).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF10B981),
+                  width: 1,
+                ),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(Icons.send, size: 20),
+                  const Icon(
+                    Icons.check_circle,
+                    color: Color(0xFF10B981),
+                    size: 20,
+                  ),
                   const SizedBox(width: 8),
                   Text(
-                    'Proposer mes services',
+                    'Mission terminée',
                     style: const TextStyle(
+                      color: Color(0xFF10B981),
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
                       fontFamily: 'Montserrat',
@@ -547,10 +612,116 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
                 ],
               ),
             ),
-          ),
         ],
       ),
     );
+  }
+
+  Future<void> _changeReservationStatus(String newStatus) async {
+    try {
+      // Afficher un dialogue de confirmation
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text('Changer le statut vers $newStatus'),
+          content: Text(
+            'Êtes-vous sûr de vouloir changer le statut de cette réservation ?\n\n'
+            'Statut actuel: ${widget.reservation.statut}\n'
+            'Nouveau statut: $newStatus\n\n'
+            'Cette action ne peut pas être annulée.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(false),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () => Navigator.of(context).pop(true),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _getStatusColor(newStatus),
+              ),
+              child: Text('Changer vers $newStatus'),
+            ),
+          ],
+        ),
+      );
+
+      if (confirmed == true) {
+        try {
+          // Appeler l'API pour changer le statut
+          final result = await _reservationService.updateReservationStatus(widget.reservation.id, newStatus);
+          
+          // Vérifier si la mise à jour a réussi
+          // Le service peut retourner un Map avec différentes structures selon l'API
+          bool success = false;
+          if (result != null) {
+            // Vérifier différentes possibilités de réponse
+            if (result['success'] == true) {
+              success = true;
+            } else if (result['message'] != null) {
+              // Si on a un message, c'est probablement un succès
+              success = true;
+            } else if (result['id'] != null) {
+              // Si on a un ID retourné, c'est probablement un succès
+              success = true;
+            }
+          }
+          
+          if (success) {
+            // Afficher un message de succès
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Statut changé vers $newStatus avec succès !'),
+                backgroundColor: Colors.green,
+                duration: const Duration(seconds: 3),
+              ),
+            );
+            
+            // Retourner à la page précédente pour rafraîchir la liste
+            Get.back();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Erreur lors du changement de statut'),
+                backgroundColor: Colors.red,
+                duration: Duration(seconds: 3),
+              ),
+            );
+          }
+        } catch (e) {
+          print('Erreur lors du changement de statut: $e');
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Erreur: $e'),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      print('Erreur lors du changement de statut: $e');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Erreur: $e'),
+          backgroundColor: Colors.red,
+          duration: const Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status.toUpperCase()) {
+      case 'EN_COURS':
+        return const Color(0xFFF59E0B);
+      case 'EN_TRANSIT':
+        return const Color(0xFF3B82F6);
+      case 'TERMINEE':
+        return const Color(0xFF10B981);
+      default:
+        return const Color(0xFF1E3A8A);
+    }
   }
 
   void _openTrackingView() {
