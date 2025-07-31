@@ -114,7 +114,7 @@ class _ChatViewState extends State<ChatView> {
 
   void _connectWebSocket() {
     try {
-      final wsUrl = 'ws://192.168.1.104:8082/ws/chat/${widget.reservation.id}';
+      final wsUrl = 'ws://10.0.2.2:8082/ws/chat/${widget.reservation.id}';
       _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
       
       _channel!.stream.listen(
