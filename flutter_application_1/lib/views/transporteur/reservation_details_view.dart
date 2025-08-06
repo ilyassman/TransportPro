@@ -9,6 +9,7 @@ import '../../services/translation_service.dart';
 import '../../services/available_reservation_service.dart';
 import 'transporteur_tracking_view.dart';
 import '../../utils/ville_utils.dart';
+import '../../utils/map_status_indicators.dart';
 
 class ReservationDetailsView extends StatefulWidget {
   final AvailableReservation reservation;
@@ -220,7 +221,7 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
               ),
               const Spacer(),
               Text(
-                'Par ${widget.reservation.chargeurNom}',
+                'Client: ${widget.reservation.chargeurNom}',
                 style: const TextStyle(
                   color: Color(0xFF64748B),
                   fontSize: 14,
@@ -334,54 +335,57 @@ class _ReservationDetailsViewState extends State<ReservationDetailsView> {
                          urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
                          userAgentPackageName: 'com.example.app',
                        ),
-                                             // Marqueur de départ avec icône camion
+                                             // Marqueur de départ avec indicateur d'état
                        MarkerLayer(
                          markers: [
                            Marker(
                              point: departureLocation!,
-                             width: 40,
-                             height: 40,
-                             child: Container(
-                               decoration: BoxDecoration(
-                                 color: const Color(0xFF1E3A8A),
-                                 shape: BoxShape.circle,
-                                 border: Border.all(color: Colors.white, width: 2),
-                               ),
-                               child: const Icon(
-                                 Icons.local_shipping,
-                                 color: Colors.white,
-                                 size: 20,
-                               ),
+                             width: 60,
+                             height: 60,
+                             child: MapStatusIndicators.createStatusBadge(
+                               status: widget.reservation.statut,
+                               text: 'DÉPART',
+                               icon: MapStatusIndicators.getDepartureIcon(widget.reservation.statut),
+                               size: 60,
                              ),
                            ),
-                           // Marqueur d'arrivée
+                           // Marqueur d'arrivée avec indicateur d'état
                            Marker(
                              point: arrivalLocation!,
-                             width: 30,
-                             height: 30,
-                             child: Container(
-                               decoration: BoxDecoration(
-                                 color: const Color(0xFF10B981),
-                                 shape: BoxShape.circle,
-                                 border: Border.all(color: Colors.white, width: 2),
-                               ),
-                               child: const Icon(
-                                 Icons.location_on,
-                                 color: Colors.white,
-                                 size: 16,
-                               ),
+                             width: 60,
+                             height: 60,
+                             child: MapStatusIndicators.createStatusBadge(
+                               status: widget.reservation.statut,
+                               text: 'ARRIVÉE',
+                               icon: MapStatusIndicators.getArrivalIcon(widget.reservation.statut),
+                               size: 60,
                              ),
                            ),
                          ],
                        ),
-                      // Ligne de route
+                      // Ligne de route avec couleur selon le statut
                       if (routePoints.length >= 2)
                         PolylineLayer(
                           polylines: [
                             Polyline(
                               points: routePoints,
-                              strokeWidth: 3,
-                              color: const Color(0xFF1E3A8A),
+                              strokeWidth: 4,
+                              color: MapStatusIndicators.getRouteColor(widget.reservation.statut),
+                            ),
+                          ],
+                        ),
+                      // Indicateur de transit au centre de la route
+                      if (routePoints.length >= 2)
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: MapStatusIndicators.getRouteCenterPoint(routePoints),
+                              width: 50,
+                              height: 50,
+                              child: MapStatusIndicators.createTransitIndicator(
+                                status: widget.reservation.statut,
+                                size: 50,
+                              ),
                             ),
                           ],
                         ),

@@ -11,6 +11,7 @@ import '../../models/camion_model.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'chat_view.dart';
+import '../../utils/map_status_indicators.dart';
 
 class TrajetCamionView extends StatefulWidget {
   final ReservationDisplay reservation;
@@ -72,7 +73,7 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
 
   void _connectWebSocket() {
     // Remplacez l'URL par celle de votre backend si besoin
-    final wsUrl = 'ws://192.168.100.19:8082/ws/camions'; // Utilise localhost pour le développement
+    final wsUrl = 'ws://192.168.1.100:8082/ws/camions'; // Utilise localhost pour le développement
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     _channel!.stream.listen((message) {
       try {
@@ -179,7 +180,7 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
     if (camionId == null) return;
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.100.19:8082/api/camions/$camionId/simulate-movement'),
+        Uri.parse('http://192.168.1.100:8082/api/camions/$camionId/simulate-movement'),
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -385,30 +386,55 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
                         polylines: [
                           Polyline(
                             points: routePoints.isNotEmpty ? routePoints : [departCoord!, arriveeCoord!],
-                            color: Colors.blue,
+                            color: MapStatusIndicators.getRouteColor(widget.reservation.status),
                             strokeWidth: 4,
                           ),
                         ],
                       ),
-                    if (departCoord != null)
+                    // Indicateur de transit au centre de la route
+                    if (routePoints.isNotEmpty && routePoints.length >= 2)
                       MarkerLayer(
                         markers: [
                           Marker(
-                            point: departCoord!,
+                            point: MapStatusIndicators.getRouteCenterPoint(routePoints),
                             width: 50,
                             height: 50,
-                            child: camionIcon ?? Image.asset('assets/truck_top.png'),
+                            child: MapStatusIndicators.createTransitIndicator(
+                              status: widget.reservation.status,
+                              size: 50,
+                            ),
                           ),
                         ],
                       ),
+                                          if (departCoord != null)
+                        MarkerLayer(
+                          markers: [
+                            Marker(
+                              point: departCoord!,
+                              width: 60,
+                              height: 60,
+                              child: MapStatusIndicators.createStatusBadge(
+                                status: widget.reservation.status,
+                                text: 'DÉPART',
+                                icon: MapStatusIndicators.getDepartureIcon(widget.reservation.status),
+                                size: 60,
+                              ),
+                            ),
+                          ],
+                        ),
                     if (arriveeCoord != null)
                       MarkerLayer(
                         markers: [
                           Marker(
                             point: arriveeCoord!,
-                            width: 40,
-                            height: 40,
-                            child: const Icon(Icons.flag, color: Colors.red, size: 32),
+                            width: 60,
+                            height: 60,
+                            child: MapStatusIndicators.createStatusBadge(
+                              status: widget.reservation.status,
+                              text: 'ARRIVÉE',
+                              icon: MapStatusIndicators.getArrivalIcon(widget.reservation.status),
+                              size: 60,
+                            ),
                           ),
                         ],
                       ),

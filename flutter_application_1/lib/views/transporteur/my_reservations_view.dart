@@ -423,7 +423,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header avec statut et chargeur
+              // Header avec statut et client
               Row(
                 children: [
                   // Badge statut
@@ -454,7 +454,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
                     ),
                   ),
                   const Spacer(),
-                  // Nom du chargeur
+                  // Nom du client
                   Row(
                     children: [
                       Text(
@@ -781,7 +781,7 @@ class _MyReservationsViewState extends State<MyReservationsView> with SingleTick
         lieuArrivee: VilleUtils.villeDepuisAdresse(reservation.lieuArrivee),
         transporteurNom: reservation.chargeurNom,
         transporteurPhone: '', // Pas de téléphone disponible
-        transporteurId: reservation.chargeurId, // ID du chargeur
+        transporteurId: reservation.chargeurId, // ID du client
         rating: 4.5,
         dateReservation: reservation.dateReservation,
         typeMarchandise: reservation.typeMarchandise,

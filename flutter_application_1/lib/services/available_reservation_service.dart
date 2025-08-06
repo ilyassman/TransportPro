@@ -98,7 +98,7 @@ class AvailableReservationService {
     }
   }
   
-  // Nouvelle méthode pour récupérer les réservations avec les informations du chargeur
+  // Nouvelle méthode pour récupérer les réservations avec les informations du client
   Future<List<AvailableReservation>> getMyReservationsWithChargeurInfo(String status) async {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
@@ -109,8 +109,8 @@ class AvailableReservationService {
       final List data = response.data;
       return data.map((json) => AvailableReservation.fromJson(json)).toList();
     } on DioException catch (e) {
-      print('Erreur lors de la récupération de mes réservations avec info chargeur: ${e.message}');
-      throw Exception('Erreur lors de la récupération de mes réservations avec info chargeur');
+      print('Erreur lors de la récupération de mes réservations avec info client: ${e.message}');
+      throw Exception('Erreur lors de la récupération de mes réservations avec info client');
     }
   }
   

@@ -10,7 +10,7 @@ class AvailableReservation {
   final String statut;
   final double tarif;
   final String modePaiement;
-  final Map<String, dynamic> chargeur; // Informations du chargeur
+  final Map<String, dynamic> chargeur; // Informations du client
   final DateTime createdAt;
 
   AvailableReservation({
@@ -49,12 +49,12 @@ class AvailableReservation {
     );
   }
 
-  // Méthode pour obtenir le nom du chargeur
-  String get chargeurNom {
-    return chargeur['nom'] ?? chargeur['username'] ?? 'Chargeur';
-  }
+      // Méthode pour obtenir le nom du client
+    String get chargeurNom {
+      return chargeur['nom'] ?? chargeur['username'] ?? 'Client';
+    }
 
-  // Méthode pour obtenir l'ID du chargeur
+      // Méthode pour obtenir l'ID du client
   int get chargeurId {
     return chargeur['id'] ?? 0;
   }

@@ -12,7 +12,6 @@ import java.security.Principal;
 import java.util.Map;
 import java.util.Optional;
 import java.util.List;
-import java.util.HashMap;
 
 @RestController
 @RequestMapping("/api/camions")
@@ -183,68 +182,6 @@ public class CamionController {
             return ResponseEntity.ok("Simulation de mouvement démarrée pour le camion " + id);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Erreur: " + e.getMessage());
-        }
-    }
-    
-    // Endpoint pour réinitialiser la disponibilité du camion
-    @PutMapping("/{id}/reset-availability")
-    public ResponseEntity<Camion> resetCamionAvailability(@PathVariable long id) {
-        try {
-            Camion camion = camionService.getCamionById(id);
-            if (camion == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            camion.setDisponible(true);
-            Camion updatedCamion = camionService.updateCamion(id, camion);
-            
-            return ResponseEntity.ok(updatedCamion);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-    
-    // Endpoint pour obtenir le statut de disponibilité du camion
-    @GetMapping("/{id}/availability")
-    public ResponseEntity<Map<String, Object>> getCamionAvailability(@PathVariable long id) {
-        try {
-            Camion camion = camionService.getCamionById(id);
-            if (camion == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Map<String, Object> response = new HashMap<>();
-            response.put("disponible", camion.getDisponible());
-            response.put("camionId", camion.getId());
-            response.put("immatriculation", camion.getImmatriculation());
-            
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
-        }
-    }
-    
-    // Endpoint pour réinitialiser la disponibilité du camion du transporteur connecté
-    @PutMapping("/my/reset-availability")
-    public ResponseEntity<Camion> resetMyCamionAvailability(Principal principal) {
-        try {
-            AppUser transporteur = appUserRepository.findByUsername(principal.getName());
-            if (transporteur == null) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Optional<Camion> camionOpt = camionService.getCamionByTransporteur(transporteur);
-            if (camionOpt.isEmpty()) {
-                return ResponseEntity.notFound().build();
-            }
-            
-            Camion camion = camionOpt.get();
-            camion.setDisponible(true);
-            Camion updatedCamion = camionService.updateCamion(camion.getId(), camion);
-            
-            return ResponseEntity.ok(updatedCamion);
-        } catch (Exception e) {
-            return ResponseEntity.badRequest().build();
         }
     }
 } 

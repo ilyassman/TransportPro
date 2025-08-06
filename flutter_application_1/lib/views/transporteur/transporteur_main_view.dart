@@ -369,44 +369,6 @@ class _TransporteurMainViewState extends State<TransporteurMainView> {
           _buildInfoRow(_getText('capacity'), '${camion.capacite.toStringAsFixed(1)} tonnes'),
           _buildInfoRow(_getText('type'), camion.type),
           _buildInfoRow(_getText('status'), camion.disponible ? _getText('available') : _getText('busy')),
-          if (!camion.disponible) ...[
-            const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                onPressed: () async {
-                  final controller = Get.put(TransporteurController());
-                  final success = await controller.resetCamionAvailability();
-                  if (success) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Camion remis en disponibilité avec succès !'),
-                        backgroundColor: Colors.green,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Erreur lors de la remise en disponibilité'),
-                        backgroundColor: Colors.red,
-                        duration: Duration(seconds: 3),
-                      ),
-                    );
-                  }
-                },
-                icon: const Icon(Icons.refresh, color: Colors.white),
-                label: const Text('Remettre en disponibilité', style: TextStyle(color: Colors.white)),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF10B981),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                ),
-              ),
-            ),
-          ],
         ],
       ),
     );

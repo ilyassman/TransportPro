@@ -6,7 +6,7 @@ import '../../services/pdf_service.dart';
 class TransporteurDocument {
   final String id;
   final String reservationId;
-  final String chargeurName;
+      final String clientName;
   final String trajetInfo;
   final DateTime dateReservation;
   final String status;
@@ -17,7 +17,7 @@ class TransporteurDocument {
   TransporteurDocument({
     required this.id,
     required this.reservationId,
-    required this.chargeurName,
+    required this.clientName,
     required this.trajetInfo,
     required this.dateReservation,
     required this.status,
@@ -27,16 +27,16 @@ class TransporteurDocument {
   });
 
   factory TransporteurDocument.fromJson(Map<String, dynamic> json) {
-    // Construire les informations du chargeur
-    String chargeurName = json['chargeurNom'] ?? 'Chargeur non assigné';
+    // Construire les informations du client
+    String clientName = json['chargeurNom'] ?? 'Client non assigné';
     if (json['chargeurCompany'] != null && json['chargeurCompany'].toString().isNotEmpty) {
-      chargeurName = json['chargeurCompany'].toString();
+      clientName = json['chargeurCompany'].toString();
     }
 
     return TransporteurDocument(
       id: _parseId(json['id']),
       reservationId: 'RES-${_parseId(json['id'])}',
-      chargeurName: chargeurName,
+      clientName: clientName,
       trajetInfo: json['trajetInfo'] ?? 'Trajet non défini',
       dateReservation: _parseDateTime(json['dateReservation']),
       status: json['statut'] ?? json['status'] ?? 'EN_ATTENTE',
@@ -119,7 +119,7 @@ class _DocumentsViewState extends State<DocumentsView> {
   List<TransporteurDocument> get _filteredDocuments {
     return _allDocuments.where((doc) {
       return doc.reservationId.toLowerCase().contains(_searchQuery.toLowerCase()) ||
-             doc.chargeurName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+             doc.clientName.toLowerCase().contains(_searchQuery.toLowerCase()) ||
              doc.trajetInfo.toLowerCase().contains(_searchQuery.toLowerCase());
     }).toList();
   }
@@ -210,7 +210,7 @@ class _DocumentsViewState extends State<DocumentsView> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Chargeur: ${document.chargeurName}'),
+                              Text('Client: ${document.clientName}'),
               const SizedBox(height: 8),
               Text('Trajet: ${document.trajetInfo}'),
               const SizedBox(height: 8),
@@ -532,7 +532,7 @@ class _DocumentsViewState extends State<DocumentsView> {
                           const SizedBox(height: 4),
                           // Chargeur
                           Text(
-                            document.chargeurName,
+                            document.clientName,
                             style: TextStyle(
                               color: Colors.grey[700],
                               fontSize: 14,

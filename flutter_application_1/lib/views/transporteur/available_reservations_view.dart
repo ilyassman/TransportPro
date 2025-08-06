@@ -362,7 +362,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header avec statut et chargeur
+              // Header avec statut et client
               Row(
                 children: [
                   // Badge statut
@@ -390,7 +390,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                     ),
                   ),
                   const Spacer(),
-                  // Nom du chargeur
+                  // Nom du client
                   Row(
                     children: [
                       Text(
@@ -678,7 +678,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
           'Départ: ${VilleUtils.villeDepuisAdresse(reservation.lieuDepart)}\n'
           'Arrivée: ${VilleUtils.villeDepuisAdresse(reservation.lieuArrivee)}\n'
           'Tarif: ${reservation.getFormattedTarif()}\n\n'
-          'Votre proposition sera envoyée au chargeur pour validation.',
+          'Votre proposition sera envoyée au client pour validation.',
         ),
         actions: [
           TextButton(

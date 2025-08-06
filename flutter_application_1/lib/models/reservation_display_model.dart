@@ -5,9 +5,9 @@ class ReservationDisplay {
   final String status;
   final String lieuDepart;
   final String lieuArrivee;
-  final String transporteurNom; // Nom du transporteur OU du chargeur selon le contexte
+  final String transporteurNom; // Nom du transporteur OU du client selon le contexte
   final String transporteurPhone;
-  final int transporteurId; // ID du transporteur OU du chargeur selon le contexte
+  final int transporteurId; // ID du transporteur OU du client selon le contexte
   final double rating;
   final DateTime dateReservation;
   final String typeMarchandise;

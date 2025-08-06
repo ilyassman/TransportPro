@@ -67,7 +67,7 @@ class _ChatViewState extends State<ChatView> {
           // Si on est le transporteur, le destinataire est le chargeur
           // On utilise l'ID de la réservation comme ID du chargeur
           destinataireId = widget.reservation.id; // Ceci devra être corrigé
-          destinataireNom = 'Chargeur';
+          destinataireNom = 'Client';
         }
       });
       

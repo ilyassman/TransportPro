@@ -259,15 +259,6 @@ public class ReservationServiceImpl implements ReservationService {
         }
         
         reservation.setStatut(newStatus);
-        
-        // Si la réservation est terminée, réinitialiser la disponibilité du camion
-        if ("TERMINEE".equals(newStatus) && reservation.getCamion() != null) {
-            Camion camion = reservation.getCamion();
-            camion.setDisponible(true);
-            camionService.updateCamion(camion.getId(), camion);
-            System.out.println("Camion " + camion.getId() + " remis en disponibilité après réservation terminée");
-        }
-        
         return reservationRepository.save(reservation);
     }
     

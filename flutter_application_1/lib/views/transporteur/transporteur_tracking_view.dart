@@ -12,6 +12,7 @@ import 'package:web_socket_channel/web_socket_channel.dart';
 import '../../services/camion_service.dart';
 import '../../models/camion_model.dart';
 import '../../utils/ville_utils.dart';
+import '../../utils/map_status_indicators.dart';
 
 class TransporteurTrackingView extends StatefulWidget {
   final AvailableReservation reservation;
@@ -106,7 +107,7 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
   }
 
   void _connectWebSocket() {
-    final wsUrl = 'ws://192.168.100.19:8082/ws/camions';
+    final wsUrl = 'ws://192.168.1.100:8082/ws/camions';
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     _channel!.stream.listen((message) {
       try {
@@ -250,7 +251,7 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
         
         print('Animation: _currentPosition = $_currentPosition, _targetPosition = $_targetPosition');
         
-        final url = 'http://192.168.100.19:8082/api/camions/$camionId/position';
+        final url = 'http://192.168.1.100:8082/api/camions/$camionId/position';
         final body = json.encode({
           'latitude': position.latitude,
           'longitude': position.longitude,
@@ -565,8 +566,23 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
                                polylines: [
                                  Polyline(
                                    points: routePoints.isNotEmpty ? routePoints : [departCoord!, arriveeCoord!],
-                                   color: const Color(0xFF1E3A8A),
+                                   color: MapStatusIndicators.getRouteColor(widget.reservation.statut),
                                    strokeWidth: 4,
+                                 ),
+                               ],
+                             ),
+                           // Indicateur de transit au centre de la route
+                           if (routePoints.isNotEmpty && routePoints.length >= 2)
+                             MarkerLayer(
+                               markers: [
+                                 Marker(
+                                   point: MapStatusIndicators.getRouteCenterPoint(routePoints),
+                                   width: 50,
+                                   height: 50,
+                                   child: MapStatusIndicators.createTransitIndicator(
+                                     status: widget.reservation.statut,
+                                     size: 50,
+                                   ),
                                  ),
                                ],
                              ),
@@ -624,19 +640,13 @@ class _TransporteurTrackingViewState extends State<TransporteurTrackingView> {
                                markers: [
                                  Marker(
                                    point: arriveeCoord!,
-                                   width: 40,
-                                   height: 40,
-                                   child: Container(
-                                     decoration: BoxDecoration(
-                                       color: const Color(0xFF10B981),
-                                       shape: BoxShape.circle,
-                                       border: Border.all(color: Colors.white, width: 2),
-                                     ),
-                                     child: const Icon(
-                                       Icons.flag,
-                                       color: Colors.white,
-                                       size: 20,
-                                     ),
+                                   width: 60,
+                                   height: 60,
+                                   child: MapStatusIndicators.createStatusBadge(
+                                     status: widget.reservation.statut,
+                                     text: 'ARRIVÉE',
+                                     icon: MapStatusIndicators.getArrivalIcon(widget.reservation.statut),
+                                     size: 60,
                                    ),
                                  ),
                                ],

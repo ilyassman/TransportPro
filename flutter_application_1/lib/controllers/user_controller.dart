@@ -10,7 +10,7 @@ class UserController extends GetxController {
   var isLoading = true.obs;
   var userList = <UserModel>[].obs;
   var isConnected = false.obs;
-      final String socketUrl = 'ws://192.168.100.19:8082/ws/users'; 
+      final String socketUrl = 'ws://192.168.1.100:8082/ws/users'; 
 
   UserController({required this.userService});
 

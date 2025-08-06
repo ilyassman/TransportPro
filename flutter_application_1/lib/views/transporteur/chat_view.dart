@@ -58,10 +58,10 @@ class _ChatViewState extends State<ChatView> {
         currentUserId = profile['id'];
         currentUsername = profile['username'];
         
-        // Pour un transporteur, le destinataire est le chargeur
-        // L'ID du chargeur est stocké dans transporteurId (nommage confus mais c'est l'ID du chargeur)
-        destinataireId = widget.reservation.transporteurId; // C'est en fait l'ID du chargeur
-        destinataireNom = widget.reservation.transporteurNom; // C'est en fait le nom du chargeur
+            // Pour un transporteur, le destinataire est le client
+    // L'ID du client est stocké dans transporteurId (nommage confus mais c'est l'ID du client)
+    destinataireId = widget.reservation.transporteurId; // C'est en fait l'ID du client
+    destinataireNom = widget.reservation.transporteurNom; // C'est en fait le nom du client
       });
       
       // Logs pour déboguer

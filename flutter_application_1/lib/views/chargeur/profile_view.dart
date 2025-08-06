@@ -267,7 +267,7 @@ class _ProfileViewState extends State<ProfileView> {
           _buildInfoRow('Nom', _profileData?['lastName'] ?? 'Non renseigné'),
           _buildInfoRow('Téléphone', _profileData?['phone'] ?? 'Non renseigné'),
           _buildInfoRow('Entreprise', _profileData?['companyName'] ?? 'Non renseigné'),
-          _buildInfoRow('Type de compte', 'Chargeur'),
+          _buildInfoRow('Type de compte', 'Client'),
           if (_profileData?['twoFactorEnabled'] != null)
             _buildInfoRow(
               'Authentification 2FA', 
