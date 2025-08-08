@@ -44,6 +44,7 @@ final Map<String, String> ar = {
   'cancel': 'إلغاء',
   'save': 'حفظ',
   'confirm': 'تأكيد',
+  'optional': 'اختياري',
   //login error
   'login_error': 'خطأ في تسجيل الدخول. تحقق من بياناتك.',
   'network_error': 'خطأ في الاتصال بالشبكة',

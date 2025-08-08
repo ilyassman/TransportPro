@@ -30,22 +30,31 @@ class AvailableReservation {
   });
 
   factory AvailableReservation.fromJson(Map<String, dynamic> json) {
+    DateTime parseDate(dynamic dateValue) {
+      if (dateValue == null) return DateTime.now();
+      try {
+        return DateTime.parse(dateValue.toString());
+      } catch (e) {
+        return DateTime.now();
+      }
+    }
+
     return AvailableReservation(
       id: json['id'],
       typeMarchandise: json['typeMarchandise'] ?? '',
-      volume: (json['volume'] as num).toDouble(),
-      poids: (json['poids'] as num).toDouble(),
+      volume: (json['volume'] as num?)?.toDouble() ?? 0.0,
+      poids: (json['poids'] as num?)?.toDouble() ?? 0.0,
       lieuDepart: json['lieuDepart'] ?? '',
       lieuArrivee: json['lieuArrivee'] ?? '',
-      dateReservation: DateTime.parse(json['dateReservation']),
+      dateReservation: parseDate(json['dateReservation']),
       dateLivraison: json['dateLivraison'] != null 
-          ? DateTime.parse(json['dateLivraison']) 
+          ? parseDate(json['dateLivraison'])
           : null,
       statut: json['statut'] ?? 'EN_ATTENTE',
-      tarif: (json['tarif'] as num).toDouble(),
+      tarif: (json['tarif'] as num?)?.toDouble() ?? 0.0,
       modePaiement: json['modePaiement'] ?? '',
       chargeur: json['chargeur'] ?? {},
-      createdAt: DateTime.parse(json['dateReservation']),
+      createdAt: parseDate(json['dateReservation']),
     );
   }
 
@@ -103,6 +112,9 @@ class AvailableReservation {
 
   // Méthode pour formater le tarif
   String getFormattedTarif() {
+    if (tarif == null || tarif <= 0) {
+      return 'À négocier';
+    }
     return '${tarif.toStringAsFixed(0)} DH';
   }
 

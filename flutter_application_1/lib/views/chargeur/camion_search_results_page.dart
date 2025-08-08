@@ -13,8 +13,8 @@ class ReservationDraft {
   final String lieuArrivee;
   final DateTime dateReservation;
   final String typeMarchandise;
-  final double poids;
-  final double volume;
+  final double? poids;
+  final double? volume;
 
   ReservationDraft({
     required this.reservationId,
@@ -22,8 +22,8 @@ class ReservationDraft {
     required this.lieuArrivee,
     required this.dateReservation,
     required this.typeMarchandise,
-    required this.poids,
-    required this.volume,
+    this.poids,
+    this.volume,
   });
 }
 

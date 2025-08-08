@@ -33,13 +33,13 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
       });
       // Recharger automatiquement quand on change d'onglet
       if (_tabController.index == 0) {
-        controller.loadReservationsByStatus('en_attente');
+        controller.loadReservationsByStatus('EN_ATTENTE');
       }
     });
     
     // Charger automatiquement les réservations au démarrage
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      controller.loadReservationsByStatus('en_attente');
+      controller.loadReservationsByStatus('EN_ATTENTE');
     });
   }
 
@@ -226,14 +226,19 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                     children: [
                       // Onglet "Toutes les réservations"
                       Obx(() {
+                        print('🔄 État de chargement: ${controller.isLoading.value}');
+                        print('📊 Nombre de réservations: ${controller.reservations.length}');
+                        
                         if (controller.isLoading.value) {
                           return _buildLoadingState();
                         }
                         
                         if (controller.reservations.isEmpty) {
+                          print('❌ Aucune réservation trouvée - Affichage de l\'état vide');
                           return _buildEmptyState();
                         }
                         
+                        print('✅ Affichage de ${controller.reservations.length} réservations');
                         return _buildReservationsList();
                       }),
                       // Onglet "Mes réservations"
@@ -317,7 +322,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
             ),
             const SizedBox(height: 8),
             Text(
-              'Aucune réservation avec le statut sélectionné n\'est disponible pour le moment.',
+              'Aucune réservation avec le statut "EN_ATTENTE" n\'est disponible pour le moment.',
               style: const TextStyle(
                 color: Color(0xFF64748B),
                 fontSize: 14,
@@ -381,6 +386,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
           padding: const EdgeInsets.all(18.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Header avec statut et client
               Row(
@@ -499,6 +505,8 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
               
               // Boutons d'action
               Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // Bouton "Voir détails"
                   SizedBox(
@@ -619,6 +627,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
   Widget _buildInfoColumn(String label, String value, IconData icon, Color color) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
@@ -640,7 +649,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
         const SizedBox(height: 4),
         Flexible(
           child: Text(
-            value,
+            value.isNotEmpty ? value : 'Non spécifié',
             style: const TextStyle(
               color: Color(0xFF1E293B),
               fontSize: 14,
@@ -657,6 +666,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
   Widget _buildDetailItem(String label, String value, IconData icon, {Color? textColor}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
+      mainAxisSize: MainAxisSize.min,
       children: [
         Row(
           children: [
@@ -678,7 +688,7 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
         const SizedBox(height: 2),
         Flexible(
           child: Text(
-            value,
+            value.isNotEmpty ? value : 'Non spécifié',
             style: TextStyle(
               color: textColor ?? const Color(0xFF1E293B),
               fontSize: 12,

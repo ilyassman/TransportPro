@@ -28,12 +28,19 @@ class AvailableReservationService {
     final dio = DioClient.create(token: token);
 
     try {
-      final response = await dio.get('/api/reservations/all/status/$status');
-      return (response.data as List)
+      print('🌐 Appel API: /api/reservations/available/status/$status');
+      final response = await dio.get('/api/reservations/available/status/$status');
+      print('📡 Réponse API reçue: ${response.data}');
+      
+      final List<AvailableReservation> reservations = (response.data as List)
           .map((json) => AvailableReservation.fromJson(json))
           .toList();
+      
+      print('📊 Réservations parsées: ${reservations.length}');
+      return reservations;
     } on DioException catch (e) {
-      print('Erreur lors de la récupération des réservations par statut: ${e.message}');
+      print('❌ Erreur lors de la récupération des réservations par statut: ${e.message}');
+      print('🔍 Détails de l\'erreur: ${e.response?.data}');
       throw Exception('Erreur lors de la récupération des réservations par statut');
     }
   }
@@ -111,6 +118,30 @@ class AvailableReservationService {
     } on DioException catch (e) {
       print('Erreur lors de la récupération de mes réservations avec info client: ${e.message}');
       throw Exception('Erreur lors de la récupération de mes réservations avec info client');
+    }
+  }
+  
+  // Récupérer toutes les réservations par statut (pas seulement les disponibles)
+  Future<List<AvailableReservation>> getAllReservationsByStatus(String status) async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('access_token') ?? '';
+    final dio = DioClient.create(token: token);
+
+    try {
+      print('🌐 Appel API: /api/reservations/all/status/$status');
+      final response = await dio.get('/api/reservations/all/status/$status');
+      print('📡 Réponse API reçue: ${response.data}');
+      
+      final List<AvailableReservation> reservations = (response.data as List)
+          .map((json) => AvailableReservation.fromJson(json))
+          .toList();
+      
+      print('📊 Réservations parsées: ${reservations.length}');
+      return reservations;
+    } on DioException catch (e) {
+      print('❌ Erreur lors de la récupération de toutes les réservations par statut: ${e.message}');
+      print('🔍 Détails de l\'erreur: ${e.response?.data}');
+      throw Exception('Erreur lors de la récupération de toutes les réservations par statut');
     }
   }
   

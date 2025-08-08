@@ -150,9 +150,9 @@ class _ReservationViewState extends State<ReservationView> {
                         const SizedBox(height: 18),
                         Row(
                           children: [
-                            Expanded(child: _inputField(_volumeController, _getText('volume'), keyboardType: TextInputType.number)),
+                            Expanded(child: _inputField(_volumeController, '${_getText('volume')} (${_getText('optional')})', keyboardType: TextInputType.number, isOptional: true)),
                             const SizedBox(width: 12),
-                            Expanded(child: _inputField(_poidsController, _getText('weight'), keyboardType: TextInputType.number)),
+                            Expanded(child: _inputField(_poidsController, '${_getText('weight')} (${_getText('optional')})', keyboardType: TextInputType.number, isOptional: true)),
                           ],
                         ),
                         const SizedBox(height: 36),
@@ -177,8 +177,8 @@ class _ReservationViewState extends State<ReservationView> {
                                   lieuArrivee: _arriveeController.text,
                                   dateReservation: DateTime.now(),
                                   typeMarchandise: _getTypeMarchandiseForDB(),
-                                  poids: double.tryParse(_poidsController.text) ?? 0,
-                                  volume: double.tryParse(_volumeController.text) ?? 0,
+                                  poids: _poidsController.text.isNotEmpty ? double.tryParse(_poidsController.text) : null,
+                                  volume: _volumeController.text.isNotEmpty ? double.tryParse(_volumeController.text) : null,
                                 );
 
                                 Map<String, dynamic> savedReservation;
@@ -232,8 +232,8 @@ class _ReservationViewState extends State<ReservationView> {
                                         lieuArrivee: _arriveeController.text,
                                         dateReservation: DateTime.now(),
                                         typeMarchandise: _getTypeMarchandiseForDB(),
-                                        poids: double.tryParse(_poidsController.text) ?? 0,
-                                        volume: double.tryParse(_volumeController.text) ?? 0,
+                                        poids: _poidsController.text.isNotEmpty ? double.tryParse(_poidsController.text) : null,
+                                        volume: _volumeController.text.isNotEmpty ? double.tryParse(_volumeController.text) : null,
                                       ),
                                       camions: camions,
                                     ),
@@ -259,7 +259,7 @@ class _ReservationViewState extends State<ReservationView> {
     );
   }
 
-  Widget _inputField(TextEditingController controller, String label, {TextInputType keyboardType = TextInputType.text, bool isLieu = false}) {
+  Widget _inputField(TextEditingController controller, String label, {TextInputType keyboardType = TextInputType.text, bool isLieu = false, bool isOptional = false}) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
@@ -301,7 +301,7 @@ class _ReservationViewState extends State<ReservationView> {
               )
             : null,
       ),
-      validator: (value) => value == null || value.isEmpty ? _getText('required_field') : null,
+      validator: isOptional ? null : (value) => value == null || value.isEmpty ? _getText('required_field') : null,
       onTap: isLieu
           ? () async {
               final result = await Navigator.push(

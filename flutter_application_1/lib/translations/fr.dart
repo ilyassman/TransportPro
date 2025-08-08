@@ -44,6 +44,7 @@ final Map<String, String> fr = {
   'cancel': 'Annuler',
   'save': 'Enregistrer',
   'confirm': 'Confirmer',
+  'optional': 'Optionnel',
 
   //login error
   'login_error': 'Erreur de connexion. Vérifiez vos identifiants.',
