@@ -58,7 +58,7 @@ class _CamionSearchResultsPageState extends State<CamionSearchResultsPage> {
 
   void _connectWebSocket() {
     print('Connexion au WebSocket...');
-    final wsUrl = 'ws://192.168.1.100:8082/ws/camions';
+    final wsUrl = 'ws://192.168.1.69:8082/ws/camions';
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     
     _channel!.stream.listen(

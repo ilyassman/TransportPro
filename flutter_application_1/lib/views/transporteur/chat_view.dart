@@ -125,7 +125,7 @@ class _ChatViewState extends State<ChatView> {
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('access_token') ?? '';
     
-    final wsUrl = 'ws://10.0.2.2:8082/ws/chat?userId=$currentUserId&token=$token';
+    final wsUrl = 'ws://192.168.1.69:8082/ws/chat?userId=$currentUserId&token=$token';
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     
     _channel!.stream.listen(

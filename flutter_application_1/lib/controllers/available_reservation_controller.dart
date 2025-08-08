@@ -37,8 +37,8 @@ class AvailableReservationController extends GetxController {
       
       // Afficher un message de succès
       String message = prixPropose != null 
-          ? 'Votre proposition avec tarif personnalisé (${prixPropose.toStringAsFixed(2)} DH) a été envoyée au chargeur !'
-          : 'Votre proposition a été envoyée au chargeur avec succès !';
+          ? 'Votre proposition avec tarif personnalisé (${prixPropose.toStringAsFixed(2)} DH) a été envoyée au client !'
+          : 'Votre proposition a été envoyée au client avec succès !';
       
       Get.snackbar(
         'Proposition envoyée',

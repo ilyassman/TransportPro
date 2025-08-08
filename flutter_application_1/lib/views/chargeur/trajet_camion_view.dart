@@ -73,7 +73,7 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
 
   void _connectWebSocket() {
     // Remplacez l'URL par celle de votre backend si besoin
-    final wsUrl = 'ws://192.168.1.100:8082/ws/camions'; // Utilise localhost pour le développement
+    final wsUrl = 'ws://192.168.1.69:8082/ws/camions'; // Utilise localhost pour le développement
     _channel = WebSocketChannel.connect(Uri.parse(wsUrl));
     _channel!.stream.listen((message) {
       try {
@@ -180,7 +180,7 @@ class _TrajetCamionViewState extends State<TrajetCamionView> {
     if (camionId == null) return;
     try {
       final response = await http.post(
-        Uri.parse('http://192.168.1.100:8082/api/camions/$camionId/simulate-movement'),
+        Uri.parse('http://192.168.1.69:8082/api/camions/$camionId/simulate-movement'),
         headers: {'Content-Type': 'application/json'},
       );
       if (response.statusCode == 200) {

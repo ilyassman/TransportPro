@@ -176,20 +176,40 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                               Tab(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Icon(Icons.public, size: 12),
                                     const SizedBox(width: 3),
-                                    const Text('Toutes les réservations'),
+                                    Flexible(
+                                      child: Text(
+                                        'Toutes les réservations',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
                               Tab(
                                 child: Row(
                                   mainAxisAlignment: MainAxisAlignment.center,
+                                  mainAxisSize: MainAxisSize.min,
                                   children: [
                                     const Icon(Icons.person, size: 12),
                                     const SizedBox(width: 3),
-                                    const Text('Mes réservations'),
+                                    Flexible(
+                                      child: Text(
+                                        'Mes réservations',
+                                        style: const TextStyle(
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w600,
+                                        ),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
                                   ],
                                 ),
                               ),
@@ -366,48 +386,59 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
               Row(
                 children: [
                   // Badge statut
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFF3B82F6),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.schedule, color: Colors.white, size: 12),
-                        const SizedBox(width: 4),
-                        Text(
-                          reservation.statut.toUpperCase(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 12,
-                            letterSpacing: 1.1,
+                  Flexible(
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF3B82F6),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.schedule, color: Colors.white, size: 12),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              reservation.statut.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 12,
+                                letterSpacing: 1.1,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                   const Spacer(),
                   // Nom du client
-                  Row(
-                    children: [
-                      Text(
-                        reservation.chargeurNom,
-                        style: const TextStyle(
-                          color: Color(0xFF1E293B),
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                  Flexible(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            reservation.chargeurNom,
+                            style: const TextStyle(
+                              color: Color(0xFF1E293B),
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(
-                        Icons.person,
-                        color: Color(0xFF64748B),
-                        size: 16,
-                      ),
-                    ],
+                        const SizedBox(width: 8),
+                        const Icon(
+                          Icons.person,
+                          color: Color(0xFF64748B),
+                          size: 16,
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -484,15 +515,19 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.info_outline, size: 18),
+                          const Icon(Icons.visibility, size: 18),
                           const SizedBox(width: 6),
-                          Text(
-                            'Voir détails',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              fontFamily: 'Montserrat',
+                          Flexible(
+                            child: Text(
+                              'Voir détails',
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                fontFamily: 'Montserrat',
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                         ],
@@ -517,15 +552,19 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.check, size: 18),
                               const SizedBox(width: 6),
-                              Text(
-                                'Accepter',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Montserrat',
+                              Flexible(
+                                child: Text(
+                                  'Accepter',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'Montserrat',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -547,15 +586,19 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
                           ),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.center,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               const Icon(Icons.edit, size: 18),
                               const SizedBox(width: 6),
-                              Text(
-                                'Proposer tarif',
-                                style: const TextStyle(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w600,
-                                  fontFamily: 'Montserrat',
+                              Flexible(
+                                child: Text(
+                                  'Proposer tarif',
+                                  style: const TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    fontFamily: 'Montserrat',
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
                                 ),
                               ),
                             ],
@@ -581,26 +624,31 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
           children: [
             Icon(icon, color: color, size: 16),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
+            Flexible(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            color: Color(0xFF1E293B),
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            value,
+            style: const TextStyle(
+              color: Color(0xFF1E293B),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
           ),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
         ),
       ],
     );
@@ -614,23 +662,29 @@ class _AvailableReservationsViewState extends State<AvailableReservationsView> w
           children: [
             Icon(icon, color: const Color(0xFF64748B), size: 14),
             const SizedBox(width: 4),
-            Text(
-              label,
-              style: const TextStyle(
-                color: Color(0xFF64748B),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
+            Flexible(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  color: Color(0xFF64748B),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                ),
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
         ),
         const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            color: textColor ?? const Color(0xFF1E293B),
-            fontSize: 12,
-            fontWeight: FontWeight.w600,
+        Flexible(
+          child: Text(
+            value,
+            style: TextStyle(
+              color: textColor ?? const Color(0xFF1E293B),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+            overflow: TextOverflow.ellipsis,
           ),
         ),
       ],

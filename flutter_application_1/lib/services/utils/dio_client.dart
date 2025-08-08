@@ -13,7 +13,7 @@ class DioClient {
     }
 
     return Dio(BaseOptions(
-      baseUrl: 'http://192.168.1.100:8082',
+      baseUrl: 'http://192.168.1.69:8082',
       connectTimeout: Duration(seconds: 5),
       receiveTimeout: Duration(seconds: 5),
       headers: headers,

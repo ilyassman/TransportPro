@@ -221,7 +221,7 @@ class _DocumentsViewState extends State<DocumentsView> {
               Text('Taille: ${document.size}'),
               const SizedBox(height: 16),
               Text(
-                'Le PDF contiendra toutes les informations détaillées de la réservation, du chargeur et du trajet.',
+                'Le PDF contiendra toutes les informations détaillées de la réservation, du client et du trajet.',
                 style: TextStyle(
                   fontSize: 12,
                   color: Colors.grey[600],
@@ -311,7 +311,7 @@ class _DocumentsViewState extends State<DocumentsView> {
           });
         },
         decoration: InputDecoration(
-          hintText: 'Rechercher par réservation, chargeur ou trajet...',
+          hintText: 'Rechercher par réservation, client ou trajet...',
           hintStyle: TextStyle(color: Colors.grey[400]),
           prefixIcon: Icon(Icons.search, color: Colors.grey[600]),
           border: InputBorder.none,
